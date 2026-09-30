@@ -30,7 +30,8 @@ const FAILURE: Record<Exclude<EnableResult, { ok: true }>['reason'], string> = {
   'ios-install': 'Di iPhone, pasang aplikasi ke Layar Utama dulu (Bagikan → Tambahkan ke Layar Utama), lalu aktifkan dari sana.',
   denied: 'Izin notifikasi ditolak. Buka pengaturan situs di browser untuk mengizinkannya.',
   'no-sw': 'Aplikasi belum siap offline. Muat ulang halaman lalu coba lagi.',
-  server: 'Server pengingat belum bisa dihubungi. Coba lagi nanti.',
+  server: 'Server pengingat belum bisa dihubungi.',
+  'not-configured': 'Server notifikasi belum dikonfigurasi.',
 }
 
 function relative(ms: number): string {
@@ -61,7 +62,7 @@ export function RemindersPage() {
       } else {
         const result = await enablePush()
         if (result.ok) showToast('Notifikasi aktif')
-        else setMessage(FAILURE[result.reason])
+        else setMessage([FAILURE[result.reason], result.detail].filter(Boolean).join(' '))
       }
     } finally {
       setBusy(false)

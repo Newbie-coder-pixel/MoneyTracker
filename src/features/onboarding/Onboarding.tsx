@@ -258,7 +258,7 @@ function ReminderStep() {
         ? 'Izin notifikasi ditolak. Kamu tetap bisa melihat pengingat lewat ikon lonceng, atau mengaktifkannya nanti.'
         : result.reason === 'ios-install'
           ? 'Di iPhone, notifikasi hanya jalan dari aplikasi yang dipasang di Layar Utama. Aktifkan nanti dari sana.'
-          : 'Notifikasi belum bisa diaktifkan sekarang. Coba lagi nanti di Lainnya → Pengingat.',
+          : `Notifikasi belum bisa diaktifkan sekarang (${result.detail ?? result.reason}). Coba lagi nanti di Lainnya → Pengingat.`,
     )
   }
 

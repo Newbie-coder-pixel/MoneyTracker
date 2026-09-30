@@ -107,6 +107,15 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* iOS Safari: date/time inputs have an intrinsic min-width and overflow w-full. */
+input[type='date'],
+input[type='time'] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  display: block;
+}
+
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;

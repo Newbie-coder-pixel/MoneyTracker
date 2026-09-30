@@ -44,7 +44,29 @@ async function dueDates(): Promise<{ date: string; kind: 'bill' | 'credit' }[]> 
   }))
 }
 
-export type EnableResult = { ok: true } | { ok: false; reason: 'unsupported' | 'ios-install' | 'denied' | 'no-sw' | 'server' }
+export type EnableResult =
+  | { ok: true }
+  | { ok: false; reason: 'unsupported' | 'ios-install' | 'denied' | 'no-sw' | 'server' | 'not-configured'; detail?: string }
+
+/** A server-side setup/storage problem, carrying a human-readable reason for the owner. */
+class PushServerError extends Error {
+  readonly notConfigured: boolean
+  constructor(message: string, notConfigured = false) {
+    super(message)
+    this.notConfigured = notConfigured
+  }
+}
+
+async function serverError(response: Response, step: string): Promise<PushServerError> {
+  let body: { error?: string; missing?: string[] } = {}
+  try {
+    body = await response.json()
+  } catch {
+    // Not JSON (e.g. a 404 page when api/ wasn't deployed).
+  }
+  if (body.missing?.length) return new PushServerError(`Isi di Vercel lalu Redeploy: ${body.missing.join(', ')}`, true)
+  return new PushServerError(`${step}: ${body.error ?? 'HTTP ' + response.status}`)
+}
 
 async function register(subscription: PushSubscription, replaceClientId?: string): Promise<boolean> {
   const settings = await getSettings()
@@ -55,7 +77,7 @@ async function register(subscription: PushSubscription, replaceClientId?: string
     dues: await dueDates(),
     replaceClientId,
   })
-  if (!response.ok) return false
+  if (!response.ok) throw await serverError(response, 'Mendaftar ke server gagal')
   const { pushClientId } = (await response.json()) as { pushClientId: string }
   await setSetting('pushClientId', pushClientId)
   await setSetting('pushEndpoint', subscription.endpoint)
@@ -65,7 +87,7 @@ async function register(subscription: PushSubscription, replaceClientId?: string
 
 async function subscribe(registration: ServiceWorkerRegistration): Promise<PushSubscription | null> {
   const keyResponse = await fetch('/api/push/key')
-  if (!keyResponse.ok) return null
+  if (!keyResponse.ok) throw await serverError(keyResponse, 'Mengambil kunci server gagal')
   const { publicKey } = (await keyResponse.json()) as { publicKey: string }
   return registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(publicKey) })
 }
@@ -86,7 +108,9 @@ export async function enablePush(): Promise<EnableResult> {
     return (await register(subscription, settings.pushClientId)) ? { ok: true } : { ok: false, reason: 'server' }
   } catch (e) {
     console.error('Push subscribe failed', e)
-    return { ok: false, reason: 'server' }
+    if (e instanceof PushServerError) return { ok: false, reason: e.notConfigured ? 'not-configured' : 'server', detail: e.message }
+    // Browser-side failure, e.g. pushManager.subscribe rejected.
+    return { ok: false, reason: 'server', detail: e instanceof Error ? e.message : String(e) }
   }
 }
 
