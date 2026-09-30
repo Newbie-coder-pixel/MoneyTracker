@@ -1,0 +1,30 @@
+# Calls the reminder cron endpoint every 15 minutes (FR-8.4). Vercel's Hobby plan
+# only allows daily crons, so GitHub Actions is the scheduler (PRD §7.2).
+# Needs two repository secrets: APP_URL (e.g. https://money-tracker.vercel.app) and CRON_SECRET.
+# GitHub may delay scheduled runs by a few minutes; the server tolerates late runs.
+name: Reminder cron
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Call /api/cron/reminders
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "APP_URL / CRON_SECRET secrets are not set; skipping."
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/reminders"

@@ -24,6 +24,14 @@
   --income-soft: #dcfce7;
   --warning: #b45309;
   --warning-soft: #fef3c7;
+  /* Chart series, validated with the dataviz palette checker (CVD-safe, both modes). */
+  --chart-expense: #b91c1c;
+  --chart-income: #2563eb;
+  --chart-grid: #dbe7e4;
+  /* Balance hero card: stays deep teal in both themes, like the mockup. */
+  --hero-from: #0f6b5e;
+  --hero-to: #0b574d;
+  --on-hero: #ffffff;
 }
 
 .dark {
@@ -44,6 +52,12 @@
   --income-soft: #11301e;
   --warning: #fbbf24;
   --warning-soft: #3a2a0a;
+  --chart-expense: #ef4444;
+  --chart-income: #3b82f6;
+  --chart-grid: #25403a;
+  --hero-from: #115e53;
+  --hero-to: #0c3f38;
+  --on-hero: #f0faf8;
   color-scheme: dark;
 }
 
@@ -66,6 +80,18 @@
   --color-income-soft: var(--income-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
+  --color-chart-expense: var(--chart-expense);
+  --color-chart-income: var(--chart-income);
+  --color-hero-from: var(--hero-from);
+  --color-hero-to: var(--hero-to);
+  --color-on-hero: var(--on-hero);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 @keyframes sheet-up {
