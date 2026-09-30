@@ -22,6 +22,8 @@ const finish = () => setSetting('onboarded', true)
 
 type OptionalWalletValue = { on: boolean; name: string; custom: boolean; balance: number }
 const OTHER = '__other__'
+/** "Lainnya (tulis sendiri)" was chosen but no name typed yet. */
+const missingName = (w: OptionalWalletValue) => w.on && w.custom && !w.name.trim()
 
 /** First-run flow (FR-10.4): welcome → wallets & opening balances → reminder. */
 export function Onboarding() {
@@ -165,17 +167,22 @@ function WalletsStep({ onNext }: { onNext: () => void }) {
   const [ewallet, setEwallet] = useState<OptionalWalletValue>({ on: true, name: 'GoPay', custom: false, balance: 0 })
   const [bank, setBank] = useState<OptionalWalletValue>({ on: true, name: 'BCA', custom: false, balance: 0 })
   const [saving, setSaving] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
   const cashValue = cashBalance ?? cash?.initialBalance ?? 0
   const total = cashValue + (ewallet.on ? ewallet.balance : 0) + (bank.on ? bank.balance : 0)
 
   const save = async () => {
+    if (missingName(ewallet) || missingName(bank)) {
+      setShowErrors(true)
+      requestAnimationFrame(() => document.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus())
+      return
+    }
     setSaving(true)
     const today = todayKey()
     if (cash) await db.wallets.update(cash.id, { initialBalance: cashValue, initialDate: today })
     const base = { initialDate: today, includeInTotal: true }
-    if (ewallet.on && ewallet.name.trim())
-      await saveWallet({ ...base, name: ewallet.name, type: 'ewallet', color: '#0891b2', icon: 'smartphone', initialBalance: ewallet.balance })
-    if (bank.on && bank.name.trim()) await saveWallet({ ...base, name: bank.name, type: 'bank', color: '#2563eb', icon: 'landmark', initialBalance: bank.balance })
+    if (ewallet.on) await saveWallet({ ...base, name: ewallet.name.trim(), type: 'ewallet', color: '#0891b2', icon: 'smartphone', initialBalance: ewallet.balance })
+    if (bank.on) await saveWallet({ ...base, name: bank.name.trim(), type: 'bank', color: '#2563eb', icon: 'landmark', initialBalance: bank.balance })
     onNext()
   }
 
@@ -192,8 +199,8 @@ function WalletsStep({ onNext }: { onNext: () => void }) {
         </div>
         <AmountInput value={cashValue} onChange={setCashBalance} />
       </section>
-      <OptionalWallet icon="smartphone" color="#0891b2" label="E-wallet" names={EWALLET_NAMES} value={ewallet} onChange={setEwallet} />
-      <OptionalWallet icon="landmark" color="#2563eb" label="Rekening bank" names={BANK_NAMES} value={bank} onChange={setBank} />
+      <OptionalWallet icon="smartphone" color="#0891b2" label="E-wallet" names={EWALLET_NAMES} value={ewallet} showError={showErrors} onChange={setEwallet} />
+      <OptionalWallet icon="landmark" color="#2563eb" label="Rekening bank" names={BANK_NAMES} value={bank} showError={showErrors} onChange={setBank} />
       <p className="text-xs text-text-muted">Kartu kredit dan dompet lain bisa ditambah nanti di Lainnya → Dompet.</p>
 
       <div className="mt-auto space-y-3">
@@ -216,6 +223,7 @@ function OptionalWallet({
   names,
   value,
   onChange,
+  showError,
 }: {
   icon: string
   color: string
@@ -223,7 +231,10 @@ function OptionalWallet({
   names: string[]
   value: OptionalWalletValue
   onChange: (v: OptionalWalletValue) => void
+  showError: boolean
 }) {
+  const invalid = showError && missingName(value)
+  const errorId = `${label.replace(/\W+/g, '-').toLowerCase()}-error`
   return (
     <section className={`rounded-3xl bg-surface p-4 ${value.on ? '' : 'opacity-70'}`}>
       <label className="flex items-center gap-3">
@@ -255,9 +266,17 @@ function OptionalWallet({
               aria-label={`Nama ${label}`}
               placeholder={`Tulis nama ${label.toLowerCase()}`}
               maxLength={40}
+              required
               autoFocus
-              className={inputClass}
+              aria-invalid={invalid}
+              aria-describedby={invalid ? errorId : undefined}
+              className={`${inputClass} ${invalid ? 'ring-2 ring-expense' : ''}`}
             />
+          )}
+          {invalid && (
+            <p id={errorId} className="px-1 text-sm text-expense">
+              Nama {label.toLowerCase()} wajib diisi.
+            </p>
           )}
           <AmountInput value={value.balance} onChange={(balance) => onChange({ ...value, balance })} />
         </div>
