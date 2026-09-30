@@ -7,4 +7,30 @@ export const WALLET_TYPES: { type: WalletType; label: string; icon: string; colo
   { type: 'credit', label: 'Kartu kredit', icon: 'credit-card', color: '#dc2626', group: 'Kartu Kredit' },
 ]
 
-export const walletTypeInfo = (type: WalletType) => WALLET_TYPES.find((t) => t.type === type)!
+/** Common Indonesian providers offered as a dropdown during onboarding; anything else is typed in. */
+export const EWALLET_NAMES = ['GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja', 'AstraPay', 'i.saku', 'Sakuku', 'DOKU']
+export const BANK_NAMES = [
+  'BCA',
+  'BRI',
+  'BNI',
+  'Mandiri',
+  'BSI',
+  'BTN',
+  'CIMB Niaga',
+  'Permata',
+  'Danamon',
+  'OCBC',
+  'Maybank',
+  'Panin',
+  'Bank Mega',
+  'BJB',
+  'Bank DKI',
+  'Bank Jago',
+  'SeaBank',
+  'Jenius',
+  'blu by BCA Digital',
+  'Allo Bank',
+  'Superbank',
+]
+
+export const walletTypeInfo =(type: WalletType) => WALLET_TYPES.find((t) => t.type === type)!

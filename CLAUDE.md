@@ -14,7 +14,9 @@ The user commits, pushes and deploys themselves (`github.com/Newbie-coder-pixel/
 
 ```bash
 npm run dev          # dev server (api/ functions don't run locally; push needs a Vercel deploy)
+npm run dev -- --host   # reachable from a phone on the same Wi-Fi
 npm run build        # tsc -b + vite build (+ service worker via vite-plugin-pwa)
+npm run preview      # serve the build; the service worker isn't built in dev (no devOptions)
 npm run lint         # oxlint (the Vite template's linter, used instead of ESLint)
 npm run typecheck    # tsc -b across app, sw, api and node configs
 npm test             # vitest run: src/**/*.test.ts and api/**/*.test.ts
@@ -28,7 +30,7 @@ React 19, TypeScript, Vite 8, Tailwind v4 (CSS-first config in `src/index.css`),
 ## Architecture
 
 - **`src/lib/`** holds pure, tested logic: `dates` (local `YYYY-MM-DD` math at local noon), `period` (month periods by start day, Monday weeks), `balance`, `stats`, `budget`, `recurring`, `creditCard`, `bills`, `filter`, `csv`, `ics`, `backup`, `pin`, `money`, `validation`. Put new calculations here, with a test.
-- **`src/db/`** holds the Dexie schema (`schema.ts`, `SCHEMA_VERSION`) and the write actions that enforce business rules: `transactions.ts`, `budgets.ts`, `recurring.ts`, `wallets.ts`, `categories.ts`, `backup.ts`, `reminders.ts`, `settings.ts` (key/value with `DEFAULT_SETTINGS`), and `hooks.ts` (live queries). UI never writes tables directly for anything with rules. `db.test.ts` covers the cross-table acceptance criteria.
+- **`src/db/`** holds the Dexie schema (`schema.ts`, `SCHEMA_VERSION`) and the write actions that enforce business rules: `transactions.ts`, `budgets.ts`, `recurring.ts`, `wallets.ts`, `categories.ts`, `backup.ts`, `reminders.ts`, `settings.ts` (key/value with `DEFAULT_SETTINGS`), and `hooks.ts` (live queries). UI never writes tables directly for anything with rules. `db.test.ts` covers the cross-table acceptance criteria. There's no Vitest setup file, so a test that touches Dexie must start with `import 'fake-indexeddb/auto'`.
   - `useLiveQuery` callbacks must be **read-only**. Do writes like `ensureBudgetsForPeriod` in effects or actions.
   - Schema change: add `this.version(n+1).stores(...).upgrade(...)` and bump `SCHEMA_VERSION`. `migrationBackup.ts` snapshots the old DB into `money-tracker-premigration` before Dexie opens (FR-10.6), so it must run before the first `db` access (see `app/startup.ts`).
   - Booleans (`archived`, `paused`) can't be IndexedDB keys, so they're filtered in memory. The total budget uses `categoryId = TOTAL_BUDGET_ID` (not null).
@@ -38,7 +40,7 @@ React 19, TypeScript, Vite 8, Tailwind v4 (CSS-first config in `src/index.css`),
 - **PWA:** `src/sw/sw.ts` (own tsconfig, WebWorker lib) does precaching, SPA navigation fallback, push display and notification clicks. `pwa/register.ts` registers it at startup, independent of any screen. `UpdateBanner` shows "Versi baru tersedia" (`registerType: 'prompt'`).
 - **Push server (`api/`)**: `_lib/schedule.ts` is the pure, tested "what to send now" logic (daily only if nothing was logged manually today; bills H-1/H and cards H-3/H from 08:00 local; generic titles, never amounts). Endpoints are `push/{key,subscribe,update,logged,unsubscribe,test}` and `cron/reminders` (Bearer `CRON_SECRET`). Relative imports in `api/` must use `.js` extensions (Node ESM on Vercel). The scheduler is `.github/workflows/reminders.yml`, every 15 min, because Vercel Hobby only allows daily crons. Env vars are listed in `.env.example`, setup steps in README.
 - **Theme:** class-driven `html.dark`. The preference lives only in localStorage (`mt-theme`) and is applied pre-paint by the inline script in `index.html` (keep it in sync with `src/lib/theme.ts`).
-- **Styling:** use only the semantic tokens in `src/index.css` (`bg-surface`, `text-text-muted`, `text-expense`, `from-hero-from`, `--chart-*`, ...), never raw colours. Each token has a light value and a `.dark` value. Chart series colours were validated for colour-blind safety: bars use `--chart-expense` (red) and `--chart-income` (blue), not green. Recharts gets resolved colours via `useChartColors()`, because SVG attributes can't use `var()`.
+- **Styling:** use only the semantic tokens in `src/index.css` (`bg-surface`, `text-text-muted`, `text-expense`, `from-hero-from`, `--chart-*`, ...), never raw colours. The one exception is the user-pickable category/wallet colours in `lib/palette.ts` (`PICKER_COLORS`), which are stored hex values. Each token has a light value and a `.dark` value. Chart series colours were validated for colour-blind safety: bars use `--chart-expense` (red) and `--chart-income` (blue), not green. Recharts gets resolved colours via `useChartColors()`, because SVG attributes can't use `var()`.
 - **No dead UI:** the Lainnya menu and all buttons only point at screens that exist (PRD §9). Touch targets are ≥ 44 px.
 
 ## Data rules that are easy to get wrong (PRD §6)

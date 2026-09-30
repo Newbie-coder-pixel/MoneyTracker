@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { AppHeader } from '../../components/AppHeader'
 import { downloadFile } from '../../components/download'
-import { inputClass } from '../../components/Pickers'
+import { TimeWheel } from '../../components/TimeWheel'
 import { showToast } from '../../components/toast'
 import { setReminderStatus } from '../../db/reminders'
 import { db } from '../../db/schema'
@@ -49,6 +49,7 @@ export function RemindersPage() {
   )
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [draftTime, setDraftTime] = useState<string | null>(null)
   const status = notificationStatus()
   const pushOn = !!settings?.pushEnabled && status === 'granted'
 
@@ -74,6 +75,7 @@ export function RemindersPage() {
     await setSetting('dailyReminderTime', time)
     await refreshReminders()
     await pushUpdate().catch(() => undefined)
+    setDraftTime(null)
     showToast(`Pengingat harian jam ${time}`)
   }
 
@@ -186,13 +188,20 @@ export function RemindersPage() {
             </p>
           )}
 
-          <label className="block text-sm">
-            <span className="font-medium">Jam pengingat harian</span>
-            <span className="block text-xs text-text-muted">Dikirim hanya jika hari itu belum ada transaksi yang kamu catat sendiri.</span>
+          <div className="text-sm">
+            <p className="font-medium">Jam pengingat harian</p>
+            <p className="text-xs text-text-muted">Dikirim hanya jika hari itu belum ada transaksi yang kamu catat sendiri.</p>
             {settings && (
-              <input type="time" defaultValue={settings.dailyReminderTime} onBlur={(e) => void changeTime(e.target.value)} className={inputClass} />
+              <div className="mt-2 space-y-2">
+                <TimeWheel value={draftTime ?? settings.dailyReminderTime} onChange={setDraftTime} />
+                {draftTime && draftTime !== settings.dailyReminderTime && (
+                  <button type="button" onClick={() => void changeTime(draftTime)} className="min-h-12 w-full rounded-2xl bg-primary font-semibold text-on-primary">
+                    Simpan jam {draftTime}
+                  </button>
+                )}
+              </div>
             )}
-          </label>
+          </div>
 
           {pushOn && (
             <button

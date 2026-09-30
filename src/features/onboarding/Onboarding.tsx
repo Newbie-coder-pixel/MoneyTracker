@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { AppLogo } from '../../components/AppLogo'
 import { IconBadge } from '../../components/IconBadge'
 import { AmountInput, inputClass } from '../../components/Pickers'
+import { TimeWheel } from '../../components/TimeWheel'
 import { db } from '../../db/schema'
 import { CASH_WALLET_ID } from '../../db/seed'
 import { setSetting } from '../../db/settings'
@@ -13,10 +14,14 @@ import { formatRupiah } from '../../lib/money'
 import { isIOS, isStandalone } from '../../pwa/install-prompt'
 import { enablePush } from '../../pwa/push'
 import { RestorePanel } from '../backup/RestorePanel'
+import { BANK_NAMES, EWALLET_NAMES } from '../wallets/walletTypes'
 
 type Step = 'install' | 'welcome' | 'restore' | 'wallets' | 'reminder'
 
 const finish = () => setSetting('onboarded', true)
+
+type OptionalWalletValue = { on: boolean; name: string; custom: boolean; balance: number }
+const OTHER = '__other__'
 
 /** First-run flow (FR-10.4): welcome → wallets & opening balances → reminder. */
 export function Onboarding() {
@@ -157,8 +162,8 @@ function WelcomeStep({ onNext, onRestore }: { onNext: () => void; onRestore: () 
 function WalletsStep({ onNext }: { onNext: () => void }) {
   const cash = useLiveQuery(() => db.wallets.get(CASH_WALLET_ID))
   const [cashBalance, setCashBalance] = useState<number | null>(null)
-  const [ewallet, setEwallet] = useState({ on: true, name: 'GoPay', balance: 0 })
-  const [bank, setBank] = useState({ on: true, name: 'BCA', balance: 0 })
+  const [ewallet, setEwallet] = useState<OptionalWalletValue>({ on: true, name: 'GoPay', custom: false, balance: 0 })
+  const [bank, setBank] = useState<OptionalWalletValue>({ on: true, name: 'BCA', custom: false, balance: 0 })
   const [saving, setSaving] = useState(false)
   const cashValue = cashBalance ?? cash?.initialBalance ?? 0
   const total = cashValue + (ewallet.on ? ewallet.balance : 0) + (bank.on ? bank.balance : 0)
@@ -187,8 +192,8 @@ function WalletsStep({ onNext }: { onNext: () => void }) {
         </div>
         <AmountInput value={cashValue} onChange={setCashBalance} />
       </section>
-      <OptionalWallet icon="smartphone" color="#0891b2" label="E-wallet" value={ewallet} onChange={setEwallet} />
-      <OptionalWallet icon="landmark" color="#2563eb" label="Rekening bank" value={bank} onChange={setBank} />
+      <OptionalWallet icon="smartphone" color="#0891b2" label="E-wallet" names={EWALLET_NAMES} value={ewallet} onChange={setEwallet} />
+      <OptionalWallet icon="landmark" color="#2563eb" label="Rekening bank" names={BANK_NAMES} value={bank} onChange={setBank} />
       <p className="text-xs text-text-muted">Kartu kredit dan dompet lain bisa ditambah nanti di Lainnya → Dompet.</p>
 
       <div className="mt-auto space-y-3">
@@ -208,14 +213,16 @@ function OptionalWallet({
   icon,
   color,
   label,
+  names,
   value,
   onChange,
 }: {
   icon: string
   color: string
   label: string
-  value: { on: boolean; name: string; balance: number }
-  onChange: (v: { on: boolean; name: string; balance: number }) => void
+  names: string[]
+  value: OptionalWalletValue
+  onChange: (v: OptionalWalletValue) => void
 }) {
   return (
     <section className={`rounded-3xl bg-surface p-4 ${value.on ? '' : 'opacity-70'}`}>
@@ -226,14 +233,32 @@ function OptionalWallet({
       </label>
       {value.on && (
         <div className="mt-2 space-y-1">
-          <input
-            value={value.name}
-            onChange={(e) => onChange({ ...value, name: e.target.value })}
-            aria-label={`Nama ${label}`}
-            placeholder="Nama, misal GoPay / BCA"
-            maxLength={40}
+          <select
+            value={value.custom ? OTHER : value.name}
+            onChange={(e) =>
+              onChange(e.target.value === OTHER ? { ...value, custom: true, name: '' } : { ...value, custom: false, name: e.target.value })
+            }
+            aria-label={`Pilih ${label}`}
             className={inputClass}
-          />
+          >
+            {names.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+            <option value={OTHER}>Lainnya (tulis sendiri)</option>
+          </select>
+          {value.custom && (
+            <input
+              value={value.name}
+              onChange={(e) => onChange({ ...value, name: e.target.value })}
+              aria-label={`Nama ${label}`}
+              placeholder={`Tulis nama ${label.toLowerCase()}`}
+              maxLength={40}
+              autoFocus
+              className={inputClass}
+            />
+          )}
           <AmountInput value={value.balance} onChange={(balance) => onChange({ ...value, balance })} />
         </div>
       )}
@@ -271,19 +296,9 @@ function ReminderStep() {
         <p className="flex items-center gap-2 font-semibold">
           <BellRing className="size-5 text-warning" aria-hidden="true" /> Pengingat harian
         </p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {['20:00', '21:00', '22:00'].map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={time === t}
-              onClick={() => setTime(t)}
-              className={`min-h-14 rounded-full font-semibold ${time === t ? 'bg-primary text-on-primary' : 'bg-surface-muted'}`}
-            >
-              {t}
-              {t === '21:00' && <span className="block text-[10px] font-normal">Rekomendasi</span>}
-            </button>
-          ))}
+        <p className="mt-1 text-sm text-text-muted">Geser untuk memilih jam. Rekomendasi: 21:00.</p>
+        <div className="mt-3">
+          <TimeWheel value={time} onChange={setTime} />
         </div>
       </section>
       {ios && (
