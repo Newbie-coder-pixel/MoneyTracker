@@ -1,0 +1,92 @@
+@import '@fontsource-variable/plus-jakarta-sans';
+@import 'tailwindcss';
+
+/* Dark mode is class-driven (html.dark) so the user can override the system setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Palette taken from the Stitch mockups (docs/mockups). Components use only these
+   semantic tokens — never raw colours — so dark mode stays consistent. */
+:root {
+  --bg: #eef8f6;
+  --surface: #ffffff;
+  --surface-muted: #e4f2ef;
+  --border: #d3e6e1;
+  --text: #0f1f1c;
+  --text-muted: #566c67;
+  --primary: #0f6b5e;
+  --primary-strong: #0b574d;
+  --primary-soft: #d3eee8;
+  --on-primary: #ffffff;
+  --expense: #9b1c2c;
+  --expense-soft: #fde2e4;
+  --on-expense: #ffffff;
+  --income: #15803d;
+  --income-soft: #dcfce7;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+}
+
+.dark {
+  --bg: #0b1614;
+  --surface: #13221f;
+  --surface-muted: #1a2d29;
+  --border: #25403a;
+  --text: #e6f2ef;
+  --text-muted: #93aba5;
+  --primary: #3fb8a3;
+  --primary-strong: #5fcab7;
+  --primary-soft: #173c35;
+  --on-primary: #04201b;
+  --expense: #f87171;
+  --expense-soft: #3b1519;
+  --on-expense: #2a0a0e;
+  --income: #4ade80;
+  --income-soft: #11301e;
+  --warning: #fbbf24;
+  --warning-soft: #3a2a0a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-expense: var(--expense);
+  --color-expense-soft: var(--expense-soft);
+  --color-on-expense: var(--on-expense);
+  --color-income: var(--income);
+  --color-income-soft: var(--income-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+body {
+  @apply font-sans antialiased;
+  overscroll-behavior-y: none;
+}
