@@ -43,11 +43,6 @@ export function Onboarding() {
           <AppLogo className="size-9" />
         )}
         <span className="flex-1 font-bold text-primary">Money Tracker</span>
-        {step !== 'install' && (
-          <button type="button" onClick={() => void finish()} className="min-h-11 px-2 text-sm font-semibold text-primary">
-            Lewati
-          </button>
-        )}
       </header>
 
       {step === 'install' && <InstallStep onContinue={() => setStep('welcome')} />}
