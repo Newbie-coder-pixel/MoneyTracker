@@ -23,8 +23,8 @@ export function BackupBanner() {
   const { age } = state
 
   return (
-    <section className="flex items-start gap-3 rounded-3xl bg-expense-soft p-4">
-      <DatabaseBackup className="mt-0.5 size-6 shrink-0 text-expense" aria-hidden="true" />
+    <section className="flex items-start gap-3 rounded-xl border border-expense/30 bg-expense-soft p-4">
+      <DatabaseBackup className="mt-0.5 size-5 shrink-0 text-expense" aria-hidden="true" />
       <div className="flex-1">
         <p className="font-semibold">{state.lastBackupAt ? `Backup terakhir ${age} hari lalu` : 'Data belum pernah di-backup'}</p>
         <p className="text-sm text-text-muted">Simpan file backup agar data tidak hilang saat ganti HP atau cache terhapus.</p>

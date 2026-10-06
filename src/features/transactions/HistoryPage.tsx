@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { AppHeader } from '../../components/AppHeader'
 import { EmptyState } from '../../components/EmptyState'
+import { inputClass } from '../../components/Pickers'
 import { Sheet } from '../../components/Sheet'
 import { useCategories, useCategoryMap, useWalletMap, useWallets } from '../../db/hooks'
 import { db } from '../../db/schema'
@@ -17,12 +18,12 @@ import { useTransactionSheet } from './useTransactionSheet'
 
 const PAGE_SIZE = 50
 
-const TYPE_CHIPS: { value?: TransactionType; label: string; dot?: string }[] = [
+const TYPE_CHIPS: { value?: TransactionType; label: string }[] = [
   { label: 'Semua' },
-  { value: 'expense', label: 'Pengeluaran', dot: 'bg-expense' },
-  { value: 'income', label: 'Pemasukan', dot: 'bg-income' },
-  { value: 'transfer', label: 'Transfer', dot: 'bg-primary' },
-  { value: 'refund', label: 'Refund', dot: 'bg-income' },
+  { value: 'expense', label: 'Pengeluaran' },
+  { value: 'income', label: 'Pemasukan' },
+  { value: 'transfer', label: 'Transfer' },
+  { value: 'refund', label: 'Refund' },
 ]
 
 export function HistoryPage() {
@@ -86,48 +87,35 @@ export function HistoryPage() {
     <>
       <AppHeader
         title="Riwayat"
+        eyebrow={results ? `${results.length} catatan` : undefined}
         actions={
-          <Link to={`/lainnya/backup?${exportParams}`} aria-label="Export CSV" className="grid size-11 place-items-center rounded-full hover:bg-surface-muted">
-            <Download className="size-6" aria-hidden="true" />
+          <Link to={`/lainnya/backup?${exportParams}`} aria-label="Export CSV" className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-surface active:bg-surface-muted">
+            <Download className="size-5" strokeWidth={1.75} aria-hidden="true" />
           </Link>
         }
       />
       <main className="space-y-3 p-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-2xl bg-expense-soft p-3">
-            <p className="text-xs text-text-muted">Pengeluaran</p>
-            <p className="truncate font-bold text-expense tabular-nums">-{formatRupiah(totals.expense)}</p>
-          </div>
-          <div className="rounded-2xl bg-income-soft p-3">
-            <p className="text-xs text-text-muted">Pemasukan</p>
-            <p className="truncate font-bold text-income tabular-nums">+{formatRupiah(totals.income)}</p>
-          </div>
-        </div>
-
         <div className="flex gap-2">
-          <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl bg-surface px-4">
-            <Search className="size-5 text-text-muted" aria-hidden="true" />
+          <label className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-xl border border-border bg-surface px-4 focus-within:border-text">
+            <Search className="size-4 shrink-0 text-text-muted" aria-hidden="true" />
             <span className="sr-only">Cari transaksi</span>
             <input
               type="search"
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Cari catatan atau kategori…"
-              className="min-w-0 flex-1 bg-transparent py-3 outline-none placeholder:text-text-muted"
+              className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
             />
           </label>
           <button
             type="button"
             onClick={() => setFilterOpen(true)}
             aria-label={advanced ? `Filter, ${advanced} aktif` : 'Filter'}
-            className="relative grid size-12 place-items-center rounded-2xl bg-surface"
+            className={`flex min-h-12 shrink-0 items-center gap-2 rounded-xl border px-4 text-sm font-semibold ${advanced ? 'border-primary bg-primary text-on-primary' : 'border-border bg-surface'}`}
           >
-            <SlidersHorizontal className="size-5" aria-hidden="true" />
-            {advanced > 0 && (
-              <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-on-primary">
-                {advanced}
-              </span>
-            )}
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            Filter
+            {advanced > 0 && <span aria-hidden="true">· {advanced}</span>}
           </button>
         </div>
 
@@ -140,13 +128,25 @@ export function HistoryPage() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => applyFilter({ ...filter, type: chip.value })}
-                className={`flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-medium ${active ? 'bg-primary text-on-primary' : 'bg-surface'}`}
+                className={`min-h-11 shrink-0 rounded-full border px-4 text-[13px] ${
+                  active ? 'border-primary bg-primary font-semibold text-on-primary' : 'border-border bg-surface font-medium text-text-muted'
+                }`}
               >
-                {chip.dot && <span className={`size-2 rounded-full ${chip.dot}`} aria-hidden="true" />}
                 {chip.label}
               </button>
             )
           })}
+        </div>
+
+        <div className="card grid grid-cols-2 divide-x divide-border py-3">
+          <div className="px-4">
+            <p className="label-caps">Pengeluaran</p>
+            <p className="truncate font-semibold text-expense">-{formatRupiah(totals.expense)}</p>
+          </div>
+          <div className="px-4">
+            <p className="label-caps">Pemasukan</p>
+            <p className="truncate font-semibold text-income">+{formatRupiah(totals.income)}</p>
+          </div>
         </div>
 
         {advanced > 0 && (
@@ -178,17 +178,17 @@ export function HistoryPage() {
         ) : (
           groups.map((group) => (
             <section key={group.date}>
-              <h2 className="flex items-baseline justify-between px-1 pt-2 pb-2">
-                <span className="font-semibold">
+              <h2 className="flex items-baseline justify-between gap-3 pt-2 pb-2">
+                <span className="label-caps">
                   {group.date === today ? 'Hari ini · ' : ''}
                   {formatDayLong(group.date)}
                 </span>
-                <span className="flex gap-2 text-sm font-semibold tabular-nums">
+                <span className="flex gap-2 text-[13px] font-semibold">
                   {group.expense > 0 && <span className="text-expense">-{formatRupiah(group.expense)}</span>}
                   {group.income > 0 && <span className="text-income">+{formatRupiah(group.income)}</span>}
                 </span>
               </h2>
-              <ul className="divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface">
+              <ul className="card divide-y divide-border overflow-hidden">
                 {group.txs.map((tx) => (
                   <TransactionRow key={tx.id} tx={tx} categories={categories} wallets={wallets} onOpen={sheet.openEdit} />
                 ))}
@@ -206,7 +206,7 @@ export function HistoryPage() {
 
 function ActiveChip({ label, onClear }: { label: string; onClear: () => void }) {
   return (
-    <span className="flex min-h-9 items-center gap-1 rounded-full bg-primary-soft pr-1 pl-3">
+    <span className="flex min-h-9 items-center gap-1 rounded-full border border-border bg-surface-muted pr-1 pl-3 text-[13px]">
       {label}
       <button type="button" onClick={onClear} aria-label={`Hapus filter ${label}`} className="grid size-8 place-items-center rounded-full">
         <X className="size-4" aria-hidden="true" />
@@ -227,21 +227,22 @@ function FilterForm({ filter, onClose, onApply }: { filter: TxFilter; onClose: (
   const categories = useCategories() ?? []
   const wallets = useWallets() ?? []
   const [draft, setDraft] = useState(filter)
-  const field = 'mt-1 min-h-12 w-full rounded-2xl bg-surface-muted px-4'
+  // The labels are small caps; the controls inside them go back to body text.
+  const field = `${inputClass} text-base font-normal tracking-normal text-text normal-case`
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
-        <label className="text-sm">
+        <label className="label-caps">
           Dari tanggal
           <input type="date" value={draft.from ?? ''} onChange={(e) => setDraft({ ...draft, from: e.target.value || undefined })} className={field} />
         </label>
-        <label className="text-sm">
+        <label className="label-caps">
           Sampai tanggal
           <input type="date" value={draft.to ?? ''} onChange={(e) => setDraft({ ...draft, to: e.target.value || undefined })} className={field} />
         </label>
       </div>
-      <label className="block text-sm">
+      <label className="label-caps block">
         Kategori
         <select value={draft.categoryId ?? ''} onChange={(e) => setDraft({ ...draft, categoryId: e.target.value || undefined })} className={field}>
           <option value="">Semua kategori</option>
@@ -263,7 +264,7 @@ function FilterForm({ filter, onClose, onApply }: { filter: TxFilter; onClose: (
           </optgroup>
         </select>
       </label>
-      <label className="block text-sm">
+      <label className="label-caps block">
         Dompet
         <select value={draft.walletId ?? ''} onChange={(e) => setDraft({ ...draft, walletId: e.target.value || undefined })} className={field}>
           <option value="">Semua dompet</option>
@@ -276,7 +277,7 @@ function FilterForm({ filter, onClose, onApply }: { filter: TxFilter; onClose: (
         </select>
       </label>
       <div className="grid grid-cols-2 gap-2">
-        <label className="text-sm">
+        <label className="label-caps">
           Nominal min.
           <input
             inputMode="numeric"
@@ -286,7 +287,7 @@ function FilterForm({ filter, onClose, onApply }: { filter: TxFilter; onClose: (
             className={field}
           />
         </label>
-        <label className="text-sm">
+        <label className="label-caps">
           Nominal maks.
           <input
             inputMode="numeric"
@@ -304,7 +305,7 @@ function FilterForm({ filter, onClose, onApply }: { filter: TxFilter; onClose: (
             onApply({ q: filter.q, type: filter.type })
             onClose()
           }}
-          className="min-h-12 rounded-2xl bg-surface-muted font-semibold"
+          className="min-h-12 rounded-full border border-border font-semibold active:bg-surface-muted"
         >
           Reset
         </button>
@@ -314,7 +315,7 @@ function FilterForm({ filter, onClose, onApply }: { filter: TxFilter; onClose: (
             onApply(draft)
             onClose()
           }}
-          className="min-h-12 rounded-2xl bg-primary font-semibold text-on-primary"
+          className="min-h-12 rounded-full bg-primary font-semibold text-on-primary"
         >
           Terapkan
         </button>

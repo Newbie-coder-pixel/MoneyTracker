@@ -11,7 +11,7 @@ import { reducedMotion } from './motion'
 import { useChartColors } from './useChartColors'
 
 const OTHER_COLOR = '#78716c'
-const LEVEL_BAR = { safe: 'bg-primary', warning: 'bg-warning', over: 'bg-expense' }
+const LEVEL_BAR = { safe: 'bg-accent', warning: 'bg-warning', over: 'bg-expense' }
 const LEVEL_TEXT = { safe: 'aman', warning: 'hampir habis', over: 'terlampaui' }
 
 type Props = {
@@ -64,7 +64,7 @@ export function CategoryBreakdown({ rows, categories, period, walletId, budgets,
               data={slices}
               dataKey="amount"
               nameKey="name"
-              innerRadius="68%"
+              innerRadius="72%"
               outerRadius="100%"
               startAngle={90}
               endAngle={-270}
@@ -91,24 +91,24 @@ export function CategoryBreakdown({ rows, categories, period, walletId, budgets,
         <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
           <div>
             <p className="text-xs text-text-muted">Total</p>
-            <p className="text-xl font-bold tabular-nums">Rp {formatCompact(total)}</p>
+            <p className="text-xl font-bold tracking-tight">Rp {formatCompact(total)}</p>
             <p className="text-xs text-text-muted">{caption}</p>
           </div>
         </div>
       </div>
 
-      <ul className="mt-4 space-y-1">
+      <ul className="mt-4 divide-y divide-border border-t border-border">
         {rows.map((row) => {
           const c = categories.get(row.categoryId)
           const budget = budgets?.find((b) => b.categoryId === row.categoryId)
           const pct = Math.round((row.amount / total) * 100)
           return (
             <li key={row.categoryId}>
-              <button type="button" onClick={() => drill(row.categoryId)} className="w-full rounded-2xl px-2 py-2 text-left hover:bg-surface-muted">
+              <button type="button" onClick={() => drill(row.categoryId)} className="w-full py-3 text-left active:bg-surface-muted">
                 <span className="flex items-center gap-3">
                   <IconBadge icon={c?.icon ?? 'ellipsis'} color={c?.color ?? OTHER_COLOR} size="sm" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold">{c?.name ?? 'Kategori'}</span>
+                    <span className="block truncate text-[15px] font-semibold">{c?.name ?? 'Kategori'}</span>
                     <span className="block text-xs text-text-muted">
                       {budget
                         ? `${formatRupiah(row.amount)} dari ${formatRupiah(budget.amount)} · ${LEVEL_TEXT[budgetLevel(row.amount, budget.amount)]}`
@@ -116,7 +116,7 @@ export function CategoryBreakdown({ rows, categories, period, walletId, budgets,
                     </span>
                   </span>
                   <span className="shrink-0 text-right">
-                    <span className="block font-semibold tabular-nums">{budget ? `${budgetPercent(row.amount, budget.amount)}%` : formatRupiah(row.amount)}</span>
+                    <span className="block text-[15px] font-semibold">{budget ? `${budgetPercent(row.amount, budget.amount)}%` : formatRupiah(row.amount)}</span>
                   </span>
                 </span>
                 <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-surface-muted">

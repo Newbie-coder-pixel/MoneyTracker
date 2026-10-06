@@ -86,52 +86,53 @@ export default function StatsPage() {
     <>
       <AppHeader
         title="Statistik"
+        eyebrow="Laporan"
         actions={
-          <Link to={`/lainnya/backup?${exportParams}`} aria-label="Export CSV periode ini" className="grid size-11 place-items-center rounded-full hover:bg-surface-muted">
-            <Download className="size-6" aria-hidden="true" />
+          <Link to={`/lainnya/backup?${exportParams}`} aria-label="Export CSV periode ini" className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-surface active:bg-surface-muted">
+            <Download className="size-5" strokeWidth={1.75} aria-hidden="true" />
           </Link>
         }
       />
       <main className="space-y-4 p-4" onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })} onTouchEnd={onTouchEnd}>
-        <div role="group" aria-label="Tampilan" className="grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1">
+        <div role="group" aria-label="Tampilan" className="grid grid-cols-2 gap-1 rounded-full border border-border bg-surface-muted p-1">
           {(['week', 'month'] as const).map((v) => (
             <button
               key={v}
               type="button"
               aria-pressed={view === v}
               onClick={() => update({ view: v, p: null })}
-              className={`min-h-11 rounded-xl font-semibold ${view === v ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
+              className={`min-h-11 rounded-full text-sm font-semibold ${view === v ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
             >
               {v === 'week' ? 'Mingguan' : 'Bulanan'}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-1 rounded-2xl bg-surface p-1">
-          <button type="button" onClick={() => shift(-1)} aria-label="Periode sebelumnya" className="grid size-11 place-items-center rounded-xl">
+        <div className="card flex items-center gap-1 p-1">
+          <button type="button" onClick={() => shift(-1)} aria-label="Periode sebelumnya" className="grid size-11 place-items-center rounded-lg active:bg-surface-muted">
             <ChevronLeft className="size-5" aria-hidden="true" />
           </button>
           <p className="flex flex-1 items-center justify-center gap-2 text-center text-sm font-semibold" aria-live="polite">
-            <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <CalendarDays className="size-4 shrink-0 text-text-muted" aria-hidden="true" />
             {view === 'week' ? weekPeriodLabel(period) : monthPeriodLabel(period)}
           </p>
-          <button type="button" onClick={() => shift(1)} aria-label="Periode berikutnya" className="grid size-11 place-items-center rounded-xl">
+          <button type="button" onClick={() => shift(1)} aria-label="Periode berikutnya" className="grid size-11 place-items-center rounded-lg active:bg-surface-muted">
             <ChevronRight className="size-5" aria-hidden="true" />
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           {!isCurrent && (
-            <button type="button" onClick={() => update({ p: null })} className="min-h-11 rounded-full bg-primary-soft px-4 text-sm font-semibold text-primary">
+            <button type="button" onClick={() => update({ p: null })} className="min-h-11 rounded-full border border-border bg-surface px-4 text-[13px] font-semibold text-accent">
               {view === 'week' ? 'Minggu ini' : 'Bulan ini'}
             </button>
           )}
           <label className="ml-auto flex min-h-11 items-center gap-2 text-sm">
-            <span className="text-text-muted">Dompet</span>
+            <span className="label-caps">Dompet</span>
             <select
               value={walletId ?? ''}
               onChange={(e) => update({ wallet: e.target.value || null })}
-              className="min-h-11 rounded-xl bg-surface px-3 font-semibold"
+              className="min-h-11 rounded-full border border-border bg-surface px-3 text-[13px] font-semibold"
             >
               <option value="">Semua</option>
               {wallets?.map((w) => (

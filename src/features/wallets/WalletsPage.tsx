@@ -33,12 +33,20 @@ export function WalletsPage() {
         }
       />
       <main className="space-y-5 p-4">
-        <section className="rounded-3xl bg-gradient-to-br from-hero-from to-hero-to p-5 text-on-hero">
-          <p className="text-sm opacity-90">Saldo total</p>
-          <p className="text-3xl font-bold tabular-nums">{formatRupiah(data.total)}</p>
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
-            <span className="rounded-full bg-white/15 px-3 py-1">Aset {formatRupiah(assets)}</span>
-            {data.creditDebt > 0 && <span className="rounded-full bg-white/15 px-3 py-1">Utang {formatRupiah(data.creditDebt)}</span>}
+        <section className="card p-5">
+          <p className="label-caps">Saldo total</p>
+          <p className="mt-1 text-[2rem] leading-10 font-bold tracking-tight">{formatRupiah(data.total)}</p>
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-3 text-[13px] text-text-muted">
+            <span className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-income" aria-hidden="true" />
+              Aset <b className="font-semibold text-text">{formatRupiah(assets)}</b>
+            </span>
+            {data.creditDebt > 0 && (
+              <span className="flex items-center gap-2">
+                <span className="size-2 rounded-full bg-expense" aria-hidden="true" />
+                Utang <b className="font-semibold text-expense">{formatRupiah(data.creditDebt)}</b>
+              </span>
+            )}
           </div>
         </section>
 
@@ -46,8 +54,8 @@ export function WalletsPage() {
           ({ group, wallets }) =>
             wallets.length > 0 && (
               <section key={group}>
-                <h2 className="mb-2 px-1 text-xs font-semibold tracking-[0.12em] text-text-muted uppercase">{group}</h2>
-                <ul className="divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface">
+                <h2 className="mb-2 label-caps">{group}</h2>
+                <ul className="card divide-y divide-border overflow-hidden">
                   {wallets.map((w) => (
                     <WalletRow key={w.id} wallet={w} balance={data.balances.get(w.id) ?? 0} />
                   ))}
@@ -66,7 +74,7 @@ export function WalletsPage() {
               {showArchived ? <EyeOff className="size-4" /> : <Eye className="size-4" />} Diarsipkan ({archived.length})
             </button>
             {showArchived && (
-              <ul className="divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface opacity-80">
+              <ul className="card divide-y divide-border overflow-hidden opacity-80">
                 {archived.map((w) => (
                   <WalletRow key={w.id} wallet={w} balance={data.balances.get(w.id) ?? 0} />
                 ))}
@@ -83,10 +91,10 @@ function WalletRow({ wallet, balance }: { wallet: Wallet; balance: number }) {
   const negative = balance < 0 && wallet.type !== 'credit'
   return (
     <li className="flex items-center">
-      <Link to={`/lainnya/dompet/${wallet.id}`} className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 hover:bg-surface-muted">
+      <Link to={`/lainnya/dompet/${wallet.id}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 px-4 py-3 active:bg-surface-muted">
         <IconBadge icon={wallet.icon} color={wallet.color} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{wallet.name}</span>
+          <span className="block truncate text-[15px] font-semibold">{wallet.name}</span>
           <span className="block text-xs text-text-muted">
             {!wallet.includeInTotal ? 'Tidak dihitung di saldo total' : negative ? 'Saldo minus' : wallet.type === 'credit' && balance < 0 ? 'Utang' : ''}
           </span>
@@ -94,7 +102,7 @@ function WalletRow({ wallet, balance }: { wallet: Wallet; balance: number }) {
         <span className={`shrink-0 font-semibold tabular-nums ${negative || (wallet.type === 'credit' && balance < 0) ? 'text-expense' : ''}`}>
           {formatRupiah(balance)}
         </span>
-        <ChevronRight className="size-5 shrink-0 text-text-muted" aria-hidden="true" />
+        <ChevronRight className="size-4 shrink-0 text-text-muted" aria-hidden="true" />
       </Link>
     </li>
   )

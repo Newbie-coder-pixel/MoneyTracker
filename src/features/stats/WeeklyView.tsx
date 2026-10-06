@@ -51,21 +51,21 @@ export function WeeklyView({ period, txs, categories, walletId, dailyTarget }: P
 
   return (
     <div className="space-y-4">
-      <section className="rounded-3xl bg-surface p-4">
-        <div className="flex items-start justify-between gap-2">
+      <section className="card overflow-hidden">
+        <div className="flex items-start justify-between gap-2 p-4">
           <div>
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-muted uppercase">Total pengeluaran</p>
-            <p className="text-3xl font-bold tabular-nums">{formatRupiah(data.total)}</p>
+            <p className="label-caps">Total pengeluaran</p>
+            <p className="mt-1 text-[1.75rem] leading-9 font-bold tracking-tight text-expense">{formatRupiah(data.total)}</p>
           </div>
           <ChangeBadge change={data.change} suffix="" />
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-surface-muted p-3 text-sm">
-          <div>
-            <p className="text-xs text-text-muted">Rata-rata</p>
+        <div className="grid grid-cols-2 divide-x divide-border border-t border-border text-[15px]">
+          <div className="px-4 py-3">
+            <p className="label-caps">Rata-rata</p>
             <p className="font-semibold tabular-nums">{formatRupiah(data.average)}/hari</p>
           </div>
-          <div>
-            <p className="text-xs text-text-muted">Hari terboros</p>
+          <div className="px-4 py-3">
+            <p className="label-caps">Hari terboros</p>
             <p className="font-semibold">{data.peak ? `${formatWeekdayShort(data.peak.date)} (${formatCompact(data.peak.expense)})` : '–'}</p>
           </div>
         </div>
@@ -101,7 +101,7 @@ export function WeeklyView({ period, txs, categories, walletId, dailyTarget }: P
                 if (Number.isFinite(index)) setSelected(index === selected ? null : index)
               }}
             >
-              <CartesianGrid vertical={false} stroke={colors.grid} />
+              <CartesianGrid vertical={false} stroke={colors.grid} strokeDasharray="3 3" />
               <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: colors.muted, fontSize: 12 }} />
               <YAxis width={40} tickLine={false} axisLine={false} tick={{ fill: colors.muted, fontSize: 11 }} tickFormatter={formatCompact} />
               <Tooltip
@@ -125,20 +125,20 @@ export function WeeklyView({ period, txs, categories, walletId, dailyTarget }: P
                   label={{ value: `Target ≤ ${formatCompact(dailyTarget)}`, position: 'insideTopRight', fill: colors.muted, fontSize: 11 }}
                 />
               )}
-              <Bar dataKey="expense" name="Pengeluaran" fill={colors.expense} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion()} />
+              <Bar dataKey="expense" name="Pengeluaran" fill={colors.expense} radius={[3, 3, 0, 0]} maxBarSize={22} isAnimationActive={!reducedMotion()} />
               {showIncome && (
-                <Bar dataKey="income" name="Pemasukan" fill={colors.income} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion()} />
+                <Bar dataKey="income" name="Pemasukan" fill={colors.income} radius={[3, 3, 0, 0]} maxBarSize={22} isAnimationActive={!reducedMotion()} />
               )}
             </BarChart>
           </ResponsiveContainer>
         </div>
         {pick ? (
-          <Link to={drillDay(pick.date)} className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl bg-surface-muted px-3 text-sm">
+          <Link to={drillDay(pick.date)} className="mt-3 flex min-h-11 items-center gap-2 rounded-xl border border-border bg-surface-muted px-3 text-[13px]">
             <span className="flex-1">
               <b>{formatDayLong(pick.date)}</b> · {formatRupiah(pick.expense)}
             </span>
-            <span className="font-semibold text-primary">Lihat transaksi</span>
-            <ChevronRight className="size-4 text-primary" aria-hidden="true" />
+            <span className="font-semibold text-accent">Lihat transaksi</span>
+            <ChevronRight className="size-4 text-accent" aria-hidden="true" />
           </Link>
         ) : (
           <p className="mt-2 text-center text-xs text-text-muted">Ketuk batang untuk melihat transaksinya</p>

@@ -4,60 +4,60 @@
 /* Dark mode is class-driven (html.dark) so the user can override the system setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Palette taken from the Stitch mockups (docs/mockups). Components use only these
-   semantic tokens — never raw colours — so dark mode stays consistent. */
+/* "Paper & Ink Ledger" palette from the Stitch project (light + dark design systems).
+   Components use only these semantic tokens — never raw colours — so dark mode stays
+   consistent. Depth comes from paper layers and 1px hairlines: no shadows, no gradients. */
 :root {
-  --bg: #eef8f6;
+  --bg: #f6f3ec;
   --surface: #ffffff;
-  --surface-muted: #e4f2ef;
-  --border: #d3e6e1;
-  --text: #0f1f1c;
-  --text-muted: #566c67;
-  --primary: #0f6b5e;
-  --primary-strong: #0b574d;
-  --primary-soft: #d3eee8;
+  --surface-muted: #efebe1;
+  --border: #e3dfd3;
+  --text: #1a1a17;
+  --text-muted: #6b6a63;
+  /* Ink: primary buttons, active chips, the "+" button. */
+  --primary: #1a1a17;
+  --primary-strong: #000000;
   --on-primary: #ffffff;
-  --expense: #9b1c2c;
-  --expense-soft: #fde2e4;
+  /* The single accent (forest ink): links, the active tab, positive status. */
+  --accent: #1f5c45;
+  --accent-soft: #e3efe9;
+  --expense: #b42318;
+  --expense-soft: #fbeae8;
   --on-expense: #ffffff;
-  --income: #15803d;
-  --income-soft: #dcfce7;
+  --income: #1f5c45;
+  --income-soft: #e3efe9;
   --warning: #b45309;
-  --warning-soft: #fef3c7;
+  --warning-soft: #fbefd9;
   /* Chart series, validated with the dataviz palette checker (CVD-safe, both modes). */
   --chart-expense: #b91c1c;
   --chart-income: #2563eb;
-  --chart-grid: #dbe7e4;
-  /* Balance hero card: stays deep teal in both themes, like the mockup. */
-  --hero-from: #0f6b5e;
-  --hero-to: #0b574d;
-  --on-hero: #ffffff;
+  --chart-grid: #e3dfd3;
+  --scrim: rgb(26 26 23 / 0.25);
 }
 
 .dark {
-  --bg: #0b1614;
-  --surface: #13221f;
-  --surface-muted: #1a2d29;
-  --border: #25403a;
-  --text: #e6f2ef;
-  --text-muted: #93aba5;
-  --primary: #3fb8a3;
-  --primary-strong: #5fcab7;
-  --primary-soft: #173c35;
-  --on-primary: #04201b;
+  --bg: #121210;
+  --surface: #1c1c19;
+  --surface-muted: #262622;
+  --border: #33332e;
+  --text: #edeae0;
+  --text-muted: #9c9a90;
+  --primary: #edeae0;
+  --primary-strong: #dcd8cd;
+  --on-primary: #121210;
+  --accent: #6fcf9f;
+  --accent-soft: #1b3327;
   --expense: #f87171;
-  --expense-soft: #3b1519;
+  --expense-soft: #3a1a17;
   --on-expense: #2a0a0e;
-  --income: #4ade80;
-  --income-soft: #11301e;
+  --income: #6fcf9f;
+  --income-soft: #1b3327;
   --warning: #fbbf24;
-  --warning-soft: #3a2a0a;
+  --warning-soft: #3a2c0c;
   --chart-expense: #ef4444;
   --chart-income: #3b82f6;
-  --chart-grid: #25403a;
-  --hero-from: #115e53;
-  --hero-to: #0c3f38;
-  --on-hero: #f0faf8;
+  --chart-grid: #33332e;
+  --scrim: rgb(0 0 0 / 0.55);
   color-scheme: dark;
 }
 
@@ -71,8 +71,9 @@
   --color-text-muted: var(--text-muted);
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
-  --color-primary-soft: var(--primary-soft);
   --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-expense: var(--expense);
   --color-expense-soft: var(--expense-soft);
   --color-on-expense: var(--on-expense);
@@ -82,9 +83,24 @@
   --color-warning-soft: var(--warning-soft);
   --color-chart-expense: var(--chart-expense);
   --color-chart-income: var(--chart-income);
-  --color-hero-from: var(--hero-from);
-  --color-hero-to: var(--hero-to);
-  --color-on-hero: var(--on-hero);
+  --color-scrim: var(--scrim);
+}
+
+/* Section micro-label: small caps with wide tracking, like a ledger column heading. */
+@utility label-caps {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Layer 1 of the paper stack: white sheet with a hairline rule. */
+@utility card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
 }
 
 @keyframes toast-in {
@@ -124,4 +140,16 @@ input[type='time'] {
 body {
   @apply font-sans antialiased;
   overscroll-behavior-y: none;
+  /* Every figure lines up in columns (design system: numerical typography rule). */
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2 {
+  letter-spacing: -0.02em;
+}
+
+::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }

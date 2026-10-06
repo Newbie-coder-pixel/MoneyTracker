@@ -33,24 +33,24 @@ export function CategoriesPage() {
         }
       />
       <main className="space-y-4 p-4">
-        <div role="group" aria-label="Jenis kategori" className="grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1">
+        <div role="group" aria-label="Jenis kategori" className="grid grid-cols-2 gap-1 rounded-full border border-border bg-surface-muted p-1">
           {(['expense', 'income'] as const).map((k) => (
             <button
               key={k}
               type="button"
               aria-pressed={kind === k}
               onClick={() => setKind(k)}
-              className={`min-h-11 rounded-xl font-semibold ${kind === k ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
+              className={`min-h-11 rounded-full font-semibold ${kind === k ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
             >
               {k === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
             </button>
           ))}
         </div>
 
-        <ul className="divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface">
+        <ul className="card divide-y divide-border overflow-hidden">
           {active.map((c, i) => (
             <li key={c.id} className="flex items-center">
-              <button type="button" onClick={() => setEditing(c)} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 px-4 text-left hover:bg-surface-muted">
+              <button type="button" onClick={() => setEditing(c)} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 px-4 text-left active:bg-surface-muted">
                 <IconBadge icon={c.icon} color={c.color} />
                 <span className="truncate font-semibold">{c.name}</span>
               </button>
@@ -82,7 +82,7 @@ export function CategoriesPage() {
               {showArchived ? <EyeOff className="size-4" /> : <Eye className="size-4" />} Diarsipkan ({archived.length})
             </button>
             {showArchived && (
-              <ul className="divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface">
+              <ul className="card divide-y divide-border overflow-hidden">
                 {archived.map((c) => (
                   <li key={c.id} className="flex min-h-16 items-center gap-3 px-4 opacity-80">
                     <IconBadge icon={c.icon} color={c.color} />
@@ -90,7 +90,7 @@ export function CategoriesPage() {
                     <button
                       type="button"
                       onClick={() => void archiveCategory(c.id, false).then(() => showToast('Kategori dipulihkan'))}
-                      className="flex min-h-11 items-center gap-1 rounded-full bg-surface-muted px-3 text-sm font-semibold"
+                      className="flex min-h-11 items-center gap-1 rounded-full border border-border px-3 text-sm font-semibold"
                     >
                       <ArchiveRestore className="size-4" aria-hidden="true" /> Pulihkan
                     </button>
@@ -140,28 +140,28 @@ function CategoryForm({ kind, existing, onDone }: { kind: CategoryKind; existing
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={30} placeholder="Misal: Kopi" className={inputClass} />
       </Field>
       <div>
-        <p className="text-sm font-medium">Warna</p>
+        <p className="label-caps">Warna</p>
         <ColorPicker value={color} onChange={setColor} />
       </div>
       <div>
-        <p className="text-sm font-medium">Ikon</p>
+        <p className="label-caps">Ikon</p>
         <IconPicker value={icon} color={color} onChange={setIcon} />
       </div>
       {error && (
-        <p role="alert" className="rounded-2xl bg-expense-soft px-4 py-3 text-sm text-expense">
+        <p role="alert" className="rounded-xl border border-expense/30 bg-expense-soft px-4 py-3 text-sm text-expense">
           {error}
         </p>
       )}
       <button
         type="button"
         onClick={() => void act(() => saveCategory({ name, icon, color, kind: existing?.kind ?? kind }, existing?.id), existing ? 'Kategori diperbarui' : 'Kategori ditambahkan')}
-        className="min-h-14 w-full rounded-2xl bg-primary text-lg font-semibold text-on-primary"
+        className="min-h-13 w-full rounded-full bg-primary text-base font-semibold text-on-primary"
       >
         Simpan
       </button>
       {existing && !locked && (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => void act(() => archiveCategory(existing.id, true), 'Kategori diarsipkan')} className="min-h-12 rounded-2xl bg-surface-muted font-semibold">
+          <button type="button" onClick={() => void act(() => archiveCategory(existing.id, true), 'Kategori diarsipkan')} className="min-h-12 rounded-full border border-border font-semibold">
             Arsipkan
           </button>
           {deletable ? (
@@ -169,7 +169,7 @@ function CategoryForm({ kind, existing, onDone }: { kind: CategoryKind; existing
               label="Hapus"
               confirmLabel="Yakin hapus?"
               onConfirm={() => void act(() => deleteCategory(existing.id), 'Kategori dihapus')}
-              className="min-h-12 rounded-2xl bg-expense-soft font-semibold text-expense"
+              className="min-h-12 rounded-full border border-expense/30 font-semibold text-expense"
             />
           ) : (
             <p className="self-center text-xs text-text-muted">Sudah dipakai: hanya bisa diarsipkan.</p>

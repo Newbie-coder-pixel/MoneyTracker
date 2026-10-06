@@ -20,6 +20,6 @@ export function signedAmount(tx: Transaction): { text: string; className: string
     case 'adjustment':
       return { text: `${tx.amount >= 0 ? '+' : ''}${formatRupiah(tx.amount)}`, className: 'text-text-muted' }
     case 'transfer':
-      return { text: formatRupiah(tx.amount), className: 'text-primary' }
+      return { text: formatRupiah(tx.amount), className: 'text-text' }
   }
 }

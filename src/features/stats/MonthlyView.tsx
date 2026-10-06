@@ -71,12 +71,12 @@ export function MonthlyView({ period, startDay, txs, budgets, categories, wallet
 
   return (
     <div className="space-y-4">
-      <section className="grid grid-cols-2 gap-2">
+      <section className="card grid grid-cols-2 overflow-hidden [&>div:nth-child(-n+2)]:border-b [&>div:nth-child(odd)]:border-r">
         <Stat label="Pemasukan" value={`+${formatRupiah(data.totals.income)}`} className="text-income" />
         <Stat label="Pengeluaran" value={`-${formatRupiah(data.totals.expense)}`} className="text-expense" />
         <Stat label="Selisih" value={formatSignedRupiah(data.net)} className={data.net >= 0 ? 'text-income' : 'text-expense'} />
         <Stat label="Rata-rata harian" value={formatRupiah(data.average)} />
-        <div className="col-span-2 flex justify-center">
+        <div className="col-span-2 flex justify-center border-t border-border py-3">
           <ChangeBadge change={data.change} suffix="dari bulan lalu" />
         </div>
       </section>
@@ -94,7 +94,7 @@ export function MonthlyView({ period, startDay, txs, budgets, categories, wallet
         <div className="h-56">
           <ResponsiveContainer>
             <LineChart data={data.line} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke={colors.grid} />
+              <CartesianGrid vertical={false} stroke={colors.grid} strokeDasharray="3 3" />
               <XAxis
                 dataKey="day"
                 tickLine={false}
@@ -145,7 +145,7 @@ export function MonthlyView({ period, startDay, txs, budgets, categories, wallet
         <div className="h-52">
           <ResponsiveContainer>
             <BarChart data={data.trend} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barGap={2}>
-              <CartesianGrid vertical={false} stroke={colors.grid} />
+              <CartesianGrid vertical={false} stroke={colors.grid} strokeDasharray="3 3" />
               <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: colors.muted, fontSize: 12 }} />
               <YAxis width={40} tickLine={false} axisLine={false} tick={{ fill: colors.muted, fontSize: 11 }} tickFormatter={formatCompact} />
               <Tooltip
@@ -160,25 +160,25 @@ export function MonthlyView({ period, startDay, txs, budgets, categories, wallet
                   />
                 }
               />
-              <Bar dataKey="income" fill={colors.income} radius={[4, 4, 0, 0]} maxBarSize={16} isAnimationActive={!reducedMotion()} />
-              <Bar dataKey="expense" fill={colors.expense} radius={[4, 4, 0, 0]} maxBarSize={16} isAnimationActive={!reducedMotion()} />
+              <Bar dataKey="income" fill={colors.income} radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={!reducedMotion()} />
+              <Bar dataKey="expense" fill={colors.expense} radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={!reducedMotion()} />
             </BarChart>
           </ResponsiveContainer>
         </div>
         {/* Net per month as a table: the chart's text view and the "selisih" the PRD asks for. */}
         <table className="mt-3 w-full text-sm">
           <caption className="sr-only">Pemasukan, pengeluaran dan selisih 6 bulan terakhir</caption>
-          <thead className="text-xs text-text-muted">
+          <thead className="label-caps">
             <tr>
-              <th className="py-1 text-left font-medium">Bulan</th>
-              <th className="py-1 text-right font-medium">Masuk</th>
-              <th className="py-1 text-right font-medium">Keluar</th>
-              <th className="py-1 text-right font-medium">Selisih</th>
+              <th className="py-1 text-left font-semibold">Bulan</th>
+              <th className="py-1 text-right font-semibold">Masuk</th>
+              <th className="py-1 text-right font-semibold">Keluar</th>
+              <th className="py-1 text-right font-semibold">Selisih</th>
             </tr>
           </thead>
           <tbody className="tabular-nums">
             {data.trend.map((m) => (
-              <tr key={m.key} className="border-t border-border/60">
+              <tr key={m.key} className="border-t border-border">
                 <td className="py-1.5">{m.label}</td>
                 <td className="py-1.5 text-right">{formatCompact(m.income)}</td>
                 <td className="py-1.5 text-right">{formatCompact(m.expense)}</td>
@@ -197,9 +197,9 @@ export function MonthlyView({ period, startDay, txs, budgets, categories, wallet
 
 function Stat({ label, value, className = '' }: { label: string; value: string; className?: string }) {
   return (
-    <div className="rounded-2xl bg-surface p-3">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className={`truncate font-bold tabular-nums ${className}`}>{value}</p>
+    <div className="border-border px-4 py-3">
+      <p className="label-caps">{label}</p>
+      <p className={`mt-0.5 truncate text-[15px] font-semibold ${className}`}>{value}</p>
     </div>
   )
 }

@@ -17,7 +17,7 @@ export function ChartTooltip({ active, label, payload, title, rows }: TooltipPro
   const datum = payload?.[0]?.payload
   if (!active || !datum || label === undefined) return null
   return (
-    <div className="rounded-xl border border-border bg-surface px-3 py-2 text-xs shadow-lg">
+    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-xs">
       <p className="mb-1 font-semibold text-text">{title(label, datum)}</p>
       {rows(datum).map((row) => (
         <p key={row.label} className="flex items-center gap-2 text-text-muted">
@@ -53,9 +53,9 @@ export function Legend({ items }: { items: { label: string; color: string; dashe
 
 export function Card({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-3xl bg-surface p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">{title}</h2>
+    <section className="card p-4">
+      <div className="mb-3 flex min-h-6 items-center justify-between gap-2">
+        <h2 className="label-caps">{title}</h2>
         {aside}
       </div>
       {children}
@@ -65,10 +65,10 @@ export function Card({ title, aside, children }: { title: string; aside?: ReactN
 
 /** "12% lebih hemat" / "8% lebih boros" / "Baru" (PRD §6.2). */
 export function ChangeBadge({ change, suffix }: { change: number | null; suffix: string }) {
-  if (change === null) return <span className="rounded-full bg-surface-muted px-2 py-1 text-xs font-semibold">Baru</span>
+  if (change === null) return <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold">Baru</span>
   const saving = change <= 0
   return (
-    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${saving ? 'bg-income-soft text-income' : 'bg-expense-soft text-expense'}`}>
+    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${saving ? 'bg-income-soft text-income' : 'bg-expense-soft text-expense'}`}>
       {saving ? '↓' : '↑'} {Math.abs(Math.round(change))}% {saving ? 'lebih hemat' : 'lebih boros'} {suffix}
     </span>
   )

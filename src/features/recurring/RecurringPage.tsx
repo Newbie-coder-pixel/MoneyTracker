@@ -56,7 +56,7 @@ export function RecurringPage() {
       <main className="space-y-4 p-4">
         {data.pending.length > 0 && (
           <section className="space-y-2">
-            <h2 className="px-1 text-sm font-semibold text-expense">{data.pending.length} perlu dikonfirmasi</h2>
+            <h2 className="label-caps">Perlu dikonfirmasi · {data.pending.length}</h2>
             {data.pending.map((o) => {
               const s = byId.get(o.recurringId)
               return s ? <PendingCard key={o.id} occurrence={o} schedule={s} categoryName={categories.get(s.template.categoryId ?? '')?.name} walletName={wallets.get(s.template.walletId)?.name} onDone={afterChange} /> : null
@@ -64,9 +64,9 @@ export function RecurringPage() {
           </section>
         )}
 
-        <section className="rounded-3xl bg-surface p-4">
-          <p className="text-xs font-semibold tracking-[0.12em] text-text-muted uppercase">Total pengeluaran rutin</p>
-          <p className="text-2xl font-bold tabular-nums">
+        <section className="rounded-xl border border-border bg-surface p-4">
+          <p className="label-caps">Total pengeluaran rutin</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight">
             {formatRupiah(monthlyTotal)} <span className="text-sm font-normal text-text-muted">/ bulan</span>
           </p>
           <p className="text-sm text-text-muted">
@@ -88,7 +88,7 @@ export function RecurringPage() {
               type="button"
               aria-pressed={filter === f}
               onClick={() => setFilter(f)}
-              className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium ${filter === f ? 'bg-primary text-on-primary' : 'bg-surface'}`}
+              className={`min-h-11 shrink-0 rounded-full border px-4 text-[13px] ${filter === f ? 'border-primary bg-primary font-semibold text-on-primary' : 'border-border bg-surface font-medium text-text-muted'}`}
             >
               {label} ({f === 'all' ? data.schedules.length : data.schedules.filter((s) => s.template.type === f).length})
             </button>
@@ -96,7 +96,7 @@ export function RecurringPage() {
         </div>
 
         {list.length === 0 ? (
-          <p className="rounded-3xl bg-surface px-4 py-8 text-center text-sm text-text-muted">
+          <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-sm text-text-muted">
             Belum ada jadwal. Tambahkan kos, langganan, atau cicilan agar tercatat otomatis.
           </p>
         ) : (
@@ -105,7 +105,7 @@ export function RecurringPage() {
               const c = categories.get(s.template.categoryId ?? '')
               const days = next ? diffDays(today, next) : null
               return (
-                <li key={s.id} className="rounded-3xl bg-surface p-4">
+                <li key={s.id} className="rounded-xl border border-border bg-surface p-4">
                   <div className="flex items-center gap-3">
                     <IconBadge icon={c?.icon ?? (s.template.type === 'transfer' ? 'wallet' : 'ellipsis')} color={c?.color ?? '#0d9488'} />
                     <Link to={`/lainnya/rutin/${s.id}`} className="min-w-0 flex-1">
@@ -122,14 +122,14 @@ export function RecurringPage() {
                     </label>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2 py-1">
+                    <span className="flex items-center gap-1 rounded-full border border-border bg-surface-muted px-2 py-0.5">
                       {s.mode === 'auto' ? <Zap className="size-3.5" aria-hidden="true" /> : <Check className="size-3.5" aria-hidden="true" />}
                       {s.mode === 'auto' ? 'Otomatis' : 'Konfirmasi'}
                     </span>
-                    <span className={`rounded-full px-2 py-1 ${days === 0 ? 'bg-expense-soft text-expense' : 'bg-surface-muted'}`}>
+                    <span className={`rounded-full px-2 py-0.5 ${days === 0 ? 'bg-expense-soft text-expense' : 'text-text-muted'}`}>
                       {s.paused ? 'Dijeda' : next ? (days === 0 ? 'Hari ini' : days === 1 ? 'Besok' : `${days} hari lagi (${formatDayShort(next)})`) : 'Selesai'}
                     </span>
-                    <span className={`ml-auto text-sm font-bold tabular-nums ${s.template.type === 'income' ? 'text-income' : s.template.type === 'expense' ? 'text-expense' : ''}`}>
+                    <span className={`ml-auto text-[15px] font-semibold ${s.template.type === 'income' ? 'text-income' : s.template.type === 'expense' ? 'text-expense' : ''}`}>
                       {s.template.type === 'income' ? '+' : s.template.type === 'expense' ? '-' : ''}
                       {formatRupiah(s.template.amount)}
                     </span>
@@ -167,7 +167,7 @@ function PendingCard({
   }
 
   return (
-    <div className="rounded-3xl border border-expense/30 bg-surface p-4">
+    <div className="card p-4">
       <p className="text-xs text-text-muted">
         {occurrence.date === todayKey() ? 'Jatuh tempo hari ini' : `Jatuh tempo ${formatDayShort(occurrence.date)}`}
       </p>
@@ -180,16 +180,16 @@ function PendingCard({
       ) : (
         <p className="mt-2 text-2xl font-bold tabular-nums">{formatRupiah(schedule.template.amount)}</p>
       )}
-      <div className="mt-3 grid grid-cols-3 gap-2 text-sm font-semibold">
+      <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3 text-[13px] font-semibold">
         <button
           type="button"
           disabled={editing && amount <= 0}
           onClick={() => void record(editing ? amount : undefined)}
-          className="flex min-h-11 items-center justify-center gap-1 rounded-2xl bg-primary text-on-primary disabled:opacity-50"
+          className="flex min-h-11 items-center justify-center gap-1 rounded-full bg-primary text-on-primary disabled:opacity-50"
         >
           <Check className="size-4" aria-hidden="true" /> Catat
         </button>
-        <button type="button" onClick={() => setEditing(!editing)} className="flex min-h-11 items-center justify-center gap-1 rounded-2xl bg-surface-muted">
+        <button type="button" onClick={() => setEditing(!editing)} className="flex min-h-11 items-center justify-center gap-1 rounded-full border border-border active:bg-surface-muted">
           <Pencil className="size-4" aria-hidden="true" /> {editing ? 'Batal' : 'Ubah nominal'}
         </button>
         <button
@@ -198,7 +198,7 @@ function PendingCard({
             showToast('Dilewati')
             onDone()
           })}
-          className="flex min-h-11 items-center justify-center gap-1 rounded-2xl bg-surface-muted"
+          className="flex min-h-11 items-center justify-center gap-1 rounded-full border border-border active:bg-surface-muted"
         >
           <SkipForward className="size-4" aria-hidden="true" /> Lewati
         </button>

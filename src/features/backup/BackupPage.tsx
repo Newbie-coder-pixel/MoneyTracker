@@ -43,36 +43,36 @@ export function BackupPage() {
     <>
       <AppHeader title="Backup & Ekspor" back />
       <main className="space-y-4 p-4">
-        <p className="flex items-start gap-3 rounded-2xl bg-primary-soft p-4 text-sm">
-          <ShieldCheck className="size-5 shrink-0 text-primary" aria-hidden="true" />
+        <p className="flex items-start gap-3 rounded-xl border border-border bg-surface-muted p-4 text-sm">
+          <ShieldCheck className="size-5 shrink-0 text-accent" aria-hidden="true" />
           <span>
             Data hanya tersimpan di HP ini, tanpa akun atau cloud. Backup rutin agar data tidak hilang saat ganti HP atau cache terhapus.
             {persisted === false && ' Browser belum menjamin penyimpanan permanen, jadi backup makin penting.'}
           </span>
         </p>
 
-        <section className="space-y-3 rounded-3xl bg-surface p-4">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <DatabaseBackup className="size-5 text-primary" aria-hidden="true" /> Backup
+        <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <DatabaseBackup className="size-5" aria-hidden="true" /> Backup
           </h2>
           <p className="text-sm text-text-muted">
             {settings?.lastBackupAt
               ? `Terakhir: ${new Date(settings.lastBackupAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}`
               : 'Belum pernah backup.'}
           </p>
-          <button type="button" onClick={() => void backup()} className="min-h-12 w-full rounded-2xl bg-primary font-semibold text-on-primary">
+          <button type="button" onClick={() => void backup()} className="min-h-12 w-full rounded-full bg-primary font-semibold text-on-primary">
             Backup sekarang (.json)
           </button>
         </section>
 
-        <section className="space-y-3 rounded-3xl bg-surface p-4">
-          <h2 className="text-lg font-semibold">Pulihkan</h2>
+        <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
+          <h2 className="text-base font-semibold">Pulihkan</h2>
           <RestorePanel onRestored={() => navigate('/', { replace: true })} />
         </section>
 
-        <section className="space-y-3 rounded-3xl bg-surface p-4">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <FileSpreadsheet className="size-5 text-primary" aria-hidden="true" /> Ekspor CSV
+        <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <FileSpreadsheet className="size-5" aria-hidden="true" /> Ekspor CSV
           </h2>
           <p className="text-sm text-text-muted">Untuk diolah di Excel atau Google Sheets.</p>
           <div className="grid grid-cols-2 gap-3">
@@ -87,7 +87,7 @@ export function BackupPage() {
             type="button"
             disabled={!csvCount}
             onClick={() => void exportCsv()}
-            className="min-h-12 w-full rounded-2xl bg-primary-soft font-semibold text-primary disabled:opacity-50"
+            className="min-h-12 w-full rounded-full border border-border font-semibold active:bg-surface-muted disabled:opacity-50"
           >
             {csvCount ? `Unduh CSV (${csvCount} transaksi)` : 'Tidak ada transaksi di rentang ini'}
           </button>

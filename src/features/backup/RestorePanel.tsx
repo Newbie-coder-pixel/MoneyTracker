@@ -61,16 +61,16 @@ export function RestorePanel({ onRestored, allowMerge = true }: { onRestored: ()
   return (
     <div className="space-y-3">
       <input ref={input} type="file" accept=".json,application/json" className="sr-only" onChange={(e) => void pick(e.target.files?.[0])} aria-label="Pilih file backup" />
-      <button type="button" onClick={() => input.current?.click()} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-surface-muted font-semibold">
+      <button type="button" onClick={() => input.current?.click()} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border font-semibold">
         <FileUp className="size-5" aria-hidden="true" /> Pilih file backup
       </button>
       {error && (
-        <p role="alert" className="rounded-2xl bg-expense-soft px-4 py-3 text-sm text-expense">
+        <p role="alert" className="rounded-xl border border-expense/30 bg-expense-soft px-4 py-3 text-sm text-expense">
           {error}
         </p>
       )}
       {file && (
-        <div className="space-y-3 rounded-2xl bg-surface-muted p-4 text-sm">
+        <div className="space-y-3 rounded-xl border border-border bg-surface-muted p-4 text-sm">
           <p>
             Backup tanggal <b>{new Date(file.backup.exportedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</b>
           </p>
@@ -100,7 +100,7 @@ export function RestorePanel({ onRestored, allowMerge = true }: { onRestored: ()
               ))}
             </fieldset>
           )}
-          <button type="button" disabled={busy} onClick={() => void restore()} className="min-h-12 w-full rounded-2xl bg-primary font-semibold text-on-primary disabled:opacity-60">
+          <button type="button" disabled={busy} onClick={() => void restore()} className="min-h-12 w-full rounded-full bg-primary font-semibold text-on-primary disabled:opacity-60">
             {mode === 'replace' ? 'Ganti data dengan backup' : 'Gabungkan data'}
           </button>
         </div>

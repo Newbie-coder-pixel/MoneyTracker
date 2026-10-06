@@ -75,13 +75,13 @@ export function WalletDetailPage() {
         title={wallet.name}
         back
         actions={
-          <Link to={`/lainnya/dompet/${wallet.id}/ubah`} aria-label="Ubah dompet" className="grid size-11 place-items-center rounded-full hover:bg-surface-muted">
+          <Link to={`/lainnya/dompet/${wallet.id}/ubah`} aria-label="Ubah dompet" className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-surface active:bg-surface-muted">
             <Pencil className="size-5" aria-hidden="true" />
           </Link>
         }
       />
       <main className="space-y-4 p-4">
-        <section className="rounded-3xl bg-surface p-5">
+        <section className="rounded-xl border border-border bg-surface p-5">
           <div className="flex items-center gap-3">
             <IconBadge icon={wallet.icon} color={wallet.color} size="lg" />
             <div>
@@ -89,17 +89,17 @@ export function WalletDetailPage() {
                 {walletTypeInfo(wallet.type).label}
                 {wallet.archived ? ' · diarsipkan' : ''}
               </p>
-              <p className="text-sm text-text-muted">{isCredit ? 'Utang saat ini' : 'Saldo'}</p>
+              <p className="label-caps mt-0.5">{isCredit ? 'Utang saat ini' : 'Saldo'}</p>
             </div>
           </div>
-          <p className={`mt-2 text-3xl font-bold tabular-nums ${(isCredit && debt > 0) || (!isCredit && balance < 0) ? 'text-expense' : ''}`}>
+          <p className={`mt-3 text-[2rem] leading-10 font-bold tracking-tight ${(isCredit && debt > 0) || (!isCredit && balance < 0) ? 'text-expense' : ''}`}>
             {formatRupiah(isCredit ? debt : balance)}
           </p>
           {!isCredit && balance < 0 && <p className="mt-1 text-sm text-warning">Saldo minus. Cek lagi catatanmu atau sesuaikan saldo.</p>}
         </section>
 
         {isCredit && (
-          <section className="space-y-3 rounded-3xl bg-surface p-4">
+          <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
             {wallet.creditLimit ? (
               <div>
                 <div className="flex justify-between text-sm">
@@ -108,9 +108,9 @@ export function WalletDetailPage() {
                     {Math.round(limitUsage(balance, wallet.creditLimit) * 100)}%
                   </span>
                 </div>
-                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-surface-muted">
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-muted">
                   <div
-                    className={`h-full rounded-full ${limitUsage(balance, wallet.creditLimit) >= 0.8 ? 'bg-expense' : 'bg-primary'}`}
+                    className={`h-full rounded-full ${limitUsage(balance, wallet.creditLimit) >= 0.8 ? 'bg-expense' : 'bg-accent'}`}
                     style={{ width: `${Math.min(100, limitUsage(balance, wallet.creditLimit) * 100)}%` }}
                   />
                 </div>
@@ -121,15 +121,15 @@ export function WalletDetailPage() {
             ) : null}
             {statement ? (
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-2xl bg-surface-muted p-3">
-                  <p className="text-xs text-text-muted">Tagihan periode terakhir</p>
+                <div className="rounded-xl border border-border bg-surface-muted p-3">
+                  <p className="label-caps">Tagihan periode terakhir</p>
                   <p className="font-bold tabular-nums">{formatRupiah(statement.billAmount)}</p>
                   <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${statement.paid ? 'bg-income-soft text-income' : 'bg-expense-soft text-expense'}`}>
                     {statement.paid ? 'Lunas' : 'Belum lunas'}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-surface-muted p-3">
-                  <p className="text-xs text-text-muted">Jatuh tempo</p>
+                <div className="rounded-xl border border-border bg-surface-muted p-3">
+                  <p className="label-caps">Jatuh tempo</p>
                   <p className="font-bold">{formatDayShortYear(statement.dueDate)}</p>
                   <p className="mt-1 text-xs text-text-muted">Cetak {formatDayShortYear(statement.statementDate)}</p>
                 </div>
@@ -141,7 +141,7 @@ export function WalletDetailPage() {
         )}
 
         {!wallet.archived && (
-          <div className="grid grid-cols-3 gap-2 text-sm font-semibold">
+          <div className="grid grid-cols-3 gap-2 text-[13px] font-semibold">
             {isCredit ? (
               <ActionButton icon={<CreditCard className="size-5" />} label="Bayar tagihan" onClick={() => sheet.openAdd('transfer', { to: wallet.id })} primary />
             ) : (
@@ -152,23 +152,23 @@ export function WalletDetailPage() {
           </div>
         )}
 
-        <section className="rounded-3xl bg-surface py-2">
-          <div className="flex items-center justify-between px-4 py-2">
-            <h2 className="text-lg font-semibold">Transaksi</h2>
+        <section className="card overflow-hidden">
+          <div className="flex min-h-12 items-center justify-between border-b border-border px-4">
+            <h2 className="label-caps">Transaksi</h2>
             {data.count > 10 && (
-              <Link to={`/riwayat?wallet=${wallet.id}`} className="text-sm font-semibold text-primary">
+              <Link to={`/riwayat?wallet=${wallet.id}`} className="text-sm font-semibold text-accent">
                 Semua ({data.count})
               </Link>
             )}
           </div>
           {data.recent.length ? (
-            <ul>
+            <ul className="divide-y divide-border">
               {data.recent.map((tx) => (
                 <TransactionRow key={tx.id} tx={tx} categories={categories} wallets={wallets} onOpen={sheet.openEdit} />
               ))}
             </ul>
           ) : (
-            <p className="px-4 pb-4 text-sm text-text-muted">Belum ada transaksi di dompet ini.</p>
+            <p className="p-4 text-sm text-text-muted">Belum ada transaksi di dompet ini.</p>
           )}
         </section>
 
@@ -177,7 +177,7 @@ export function WalletDetailPage() {
             <button
               type="button"
               onClick={() => void run(() => unarchiveWallet(wallet.id), 'Dompet dipulihkan')}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-surface font-semibold"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface font-semibold"
             >
               <ArchiveRestore className="size-5" aria-hidden="true" /> Pulihkan dari arsip
             </button>
@@ -187,7 +187,7 @@ export function WalletDetailPage() {
                 type="button"
                 disabled={!!data.blocker}
                 onClick={() => void run(() => archiveWallet(wallet.id), 'Dompet diarsipkan')}
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-surface font-semibold disabled:opacity-50"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface font-semibold disabled:opacity-50"
               >
                 <Archive className="size-5" aria-hidden="true" /> Arsipkan
               </button>
@@ -203,7 +203,7 @@ export function WalletDetailPage() {
               }
               confirmLabel="Ketuk lagi untuk menghapus"
               onConfirm={() => void run(() => deleteWallet(wallet.id), 'Dompet dihapus', () => navigate('/lainnya/dompet', { replace: true }))}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-expense-soft font-semibold text-expense"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-expense/30 font-semibold text-expense"
             />
           )}
         </section>
@@ -221,7 +221,7 @@ function ActionButton({ icon, label, onClick, primary }: { icon: ReactNode; labe
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl ${primary ? 'bg-primary text-on-primary' : 'bg-surface'}`}
+      className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border ${primary ? 'border-primary bg-primary text-on-primary' : 'border-border bg-surface active:bg-surface-muted'}`}
     >
       {icon}
       {label}
@@ -245,7 +245,7 @@ function AdjustForm({ wallet, balance, onDone }: { wallet: Wallet; balance: numb
       <Field label={isCredit ? 'Utang sebenarnya' : 'Saldo sebenarnya'}>
         <AmountInput value={actual} onChange={setActual} signed={!isCredit} />
       </Field>
-      <p className="rounded-2xl bg-surface-muted px-4 py-3 text-sm">
+      <p className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm">
         Penyesuaian: <b className="tabular-nums">{formatSignedRupiah(delta)}</b>
         <span className="block text-xs text-text-muted">Tidak dihitung sebagai pemasukan/pengeluaran di chart.</span>
       </p>
@@ -257,7 +257,7 @@ function AdjustForm({ wallet, balance, onDone }: { wallet: Wallet; balance: numb
           showToast('Saldo disesuaikan')
           onDone()
         }}
-        className="min-h-14 w-full rounded-2xl bg-primary text-lg font-semibold text-on-primary disabled:opacity-50"
+        className="min-h-13 w-full rounded-full bg-primary text-base font-semibold text-on-primary disabled:opacity-50"
       >
         Simpan penyesuaian
       </button>

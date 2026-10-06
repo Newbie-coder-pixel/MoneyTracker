@@ -1,7 +1,7 @@
-import { ArrowDownUp, CalendarDays, ChevronDown, Clock, CopyPlus, NotebookPen, Repeat, Trash2, TriangleAlert, Undo2 } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { ArrowDownUp, CalendarDays, Check, ChevronDown, Clock, CopyPlus, NotebookPen, Repeat, Trash2, TriangleAlert, Undo2 } from 'lucide-react'
+import { createElement, useMemo, useState, type ReactNode } from 'react'
 import { AmountKeypad } from '../../components/AmountKeypad'
-import { IconBadge } from '../../components/IconBadge'
+import { iconFor } from '../../components/icons'
 import { inputClass } from '../../components/Pickers'
 import { showToast } from '../../components/toast'
 import { deleteCategory, findOrCreateCategory, isOtherCategory } from '../../db/categories'
@@ -35,6 +35,9 @@ type Props = {
 
 const QUICK_ADD = [10_000, 50_000, 100_000]
 const QUICK_ADD_TRANSFER = [100_000, 250_000, 500_000, 1_000_000]
+
+/** The amount is inked by direction: red out, forest in, plain ink for a transfer. */
+const AMOUNT_INK: Record<AddKind, string> = { expense: 'text-expense', income: 'text-income', transfer: 'text-text' }
 
 const TABS: { kind: AddKind; label: string }[] = [
   { kind: 'expense', label: 'Pengeluaran' },
@@ -73,7 +76,6 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const type: TransactionDraft['type'] = kind === 'income' && isRefund ? 'refund' : kind
   const isTransfer = kind === 'transfer'
   const selectable = wallets.filter((w) => !w.archived || w.id === walletId || w.id === toWalletId)
-  const accent = kind === 'expense' ? 'expense' : 'primary'
   // Picking "Lainnya" requires naming a new category. Refunds are exempt (they point at an
   // existing expense category), and so is an edit that leaves an old "Lainnya" untouched.
   const selectedCategory = categories?.find((c) => c.id === categoryId)
@@ -157,17 +159,16 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
 
   return (
     <div className="space-y-4">
-      <div role="group" aria-label="Jenis transaksi" className="grid grid-cols-3 gap-1 rounded-2xl bg-surface-muted p-1">
+      <div role="group" aria-label="Jenis transaksi" className="grid grid-cols-3 gap-1 rounded-full border border-border bg-surface-muted p-1">
         {TABS.map(({ kind: k, label }) => {
           const selected = k === kind
-          const selectedColor = k === 'expense' ? 'bg-expense text-on-expense' : 'bg-primary text-on-primary'
           return (
             <button
               key={k}
               type="button"
               aria-pressed={selected}
               onClick={() => switchKind(k)}
-              className={`min-h-11 rounded-xl text-sm font-semibold ${selected ? selectedColor : 'text-text-muted'}`}
+              className={`min-h-11 rounded-full text-sm ${selected ? 'bg-primary font-semibold text-on-primary' : 'font-medium text-text-muted'}`}
             >
               {label}
             </button>
@@ -176,18 +177,15 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
       </div>
 
       {existing?.recurringId && (
-        <p className="flex items-center gap-2 rounded-xl bg-primary-soft px-3 py-2 text-xs">
-          <Repeat className="size-4 text-primary" aria-hidden="true" /> Dibuat dari transaksi rutin
+        <p className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs text-text-muted">
+          <Repeat className="size-4" aria-hidden="true" /> Dibuat dari transaksi rutin
         </p>
       )}
 
-      <section className="rounded-3xl bg-surface-muted px-4 py-4 text-center">
-        <p className={`text-xs font-semibold tracking-[0.12em] uppercase ${accent === 'expense' ? 'text-expense' : 'text-primary'}`}>
-          Nominal {isRefund ? 'refund' : TABS.find((t) => t.kind === kind)?.label.toLowerCase()}
-        </p>
-        <p className="mt-1 flex items-baseline justify-center gap-2" aria-live="polite">
-          <span className={`text-xl font-semibold ${accent === 'expense' ? 'text-expense' : 'text-primary'}`}>Rp</span>
-          <span className="text-4xl font-bold tabular-nums">{formatNumber(amount)}</span>
+      <section className="pt-1 text-center">
+        <p className="label-caps">Nominal {isRefund ? 'refund' : TABS.find((t) => t.kind === kind)?.label.toLowerCase()}</p>
+        <p className={`mt-1 text-4xl leading-tight font-bold tracking-tight ${AMOUNT_INK[isRefund ? 'income' : kind]}`} aria-live="polite">
+          <span className="text-[1.75rem]">Rp</span> {formatNumber(amount)}
         </p>
         <div className="mt-3 flex flex-wrap justify-center gap-2">
           {(isTransfer ? QUICK_ADD_TRANSFER : QUICK_ADD).map((delta) => (
@@ -195,13 +193,13 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
               key={delta}
               type="button"
               onClick={() => setAmount((a) => addCapped(a, delta))}
-              className="min-h-9 rounded-full bg-surface px-3 text-sm font-medium"
+              className="min-h-9 rounded-full border border-border px-3 text-[13px] font-medium active:bg-surface-muted"
             >
               +{delta >= 1_000_000 ? `${delta / 1_000_000}jt` : `${delta / 1000}rb`}
             </button>
           ))}
           {amount > 0 && (
-            <button type="button" onClick={() => setAmount(0)} aria-label="Reset nominal" className="grid size-9 place-items-center rounded-full bg-surface">
+            <button type="button" onClick={() => setAmount(0)} aria-label="Reset nominal" className="grid size-9 place-items-center rounded-full border border-border text-text-muted">
               <Undo2 className="size-4" aria-hidden="true" />
             </button>
           )}
@@ -209,7 +207,7 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
       </section>
 
       {kind === 'income' && (
-        <label className="flex min-h-11 items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 text-sm">
+        <label className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-border px-4 py-2 text-sm">
           <span>
             <span className="font-semibold">Uang kembali (refund)</span>
             <span className="block text-xs text-text-muted">Mengurangi pengeluaran kategori asal, bukan pemasukan</span>
@@ -219,9 +217,10 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
       )}
 
       {isTransfer ? (
-        <section className="space-y-2 rounded-3xl bg-surface-muted p-3">
-          <WalletSelect label="Dari dompet" value={walletId} onChange={setWalletId} wallets={selectable} balances={balances?.balances} />
-          <div className="flex justify-center">
+        <section className="rounded-xl border border-border bg-surface-muted">
+          <div className="relative divide-y divide-border">
+            <WalletSelect label="Dari dompet" value={walletId} onChange={setWalletId} wallets={selectable} balances={balances?.balances} />
+            <WalletSelect label="Ke dompet" value={toWalletId ?? ''} onChange={setToWalletId} wallets={selectable} balances={balances?.balances} />
             <button
               type="button"
               aria-label="Tukar dompet asal dan tujuan"
@@ -230,60 +229,51 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
                 setWalletId(toWalletId)
                 setToWalletId(walletId)
               }}
-              className="grid size-10 place-items-center rounded-full bg-primary text-on-primary"
+              className="absolute top-1/2 right-12 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-border bg-surface"
             >
-              <ArrowDownUp className="size-5" aria-hidden="true" />
+              <ArrowDownUp className="size-4" aria-hidden="true" />
             </button>
           </div>
-          <WalletSelect label="Ke dompet" value={toWalletId ?? ''} onChange={setToWalletId} wallets={selectable} balances={balances?.balances} />
-          <label className="flex min-h-11 items-center justify-between gap-3 px-2 text-sm">
+          <label className="flex min-h-12 items-center justify-between gap-3 px-4 text-sm">
             <span className="text-text-muted">Biaya admin (opsional)</span>
             <input
               inputMode="numeric"
               value={adminFee ? formatNumber(adminFee) : ''}
               onChange={(e) => setAdminFee(parseAmountInput(e.target.value))}
               placeholder="Rp 0"
-              className="w-32 rounded-xl bg-surface px-3 py-2 text-right"
+              className="w-28 bg-transparent py-2 text-right font-semibold outline-none"
             />
           </label>
         </section>
       ) : (
         <section>
-          <div className="mb-2 flex items-baseline justify-between">
-            <h3 className="font-semibold">Pilih Kategori</h3>
-            <span className={`text-sm font-semibold ${accent === 'expense' ? 'text-expense' : 'text-primary'}`}>
-              {selectedCategory?.name}
-            </span>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
+          <h3 className="label-caps mb-2">Kategori</h3>
+          <div className="flex flex-wrap gap-2">
             {visibleCategories?.map((c) => (
-              <CategoryTile key={c.id} category={c} selected={c.id === categoryId} onSelect={() => setCategoryId(c.id)} />
+              <CategoryChip key={c.id} category={c} selected={c.id === categoryId} onSelect={() => setCategoryId(c.id)} />
             ))}
             {!showAllCategories && categories && categories.length > 7 && (
               <button
                 type="button"
                 onClick={() => setShowAllCategories(true)}
-                className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl bg-surface-muted p-2 text-xs"
+                className="flex min-h-11 items-center gap-1 rounded-full border border-dashed border-border px-3.5 text-[13px] font-medium text-text-muted"
               >
-                <ChevronDown className="size-5" aria-hidden="true" />
-                Semua
+                Semua <ChevronDown className="size-4" aria-hidden="true" />
               </button>
             )}
           </div>
           {needsNewCategory && (
-            <label className="mt-3 block text-sm font-semibold">
-              Nama kategori baru
+            <label className="mt-3 block">
+              <span className="label-caps">Nama kategori baru</span>
               <input
                 autoFocus
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 maxLength={30}
                 placeholder="Misal: Kopi"
-                className={`${inputClass} font-normal`}
+                className={inputClass}
               />
-              <span className="mt-1 block text-xs font-normal text-text-muted">
-                Wajib diisi. Kategori ini tersimpan dan bisa dipilih lagi nanti.
-              </span>
+              <span className="mt-1 block text-xs text-text-muted">Wajib diisi. Kategori ini tersimpan dan bisa dipilih lagi nanti.</span>
             </label>
           )}
         </section>
@@ -291,40 +281,40 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
 
       <div className="grid grid-cols-2 gap-2">
         {!isTransfer && (
-          <div className="col-span-2">
-            <WalletSelect label="Sumber dana" value={walletId} onChange={setWalletId} wallets={selectable} balances={balances?.balances} />
+          <div className="col-span-2 rounded-xl border border-border bg-surface-muted">
+            <WalletSelect label="Dompet" value={walletId} onChange={setWalletId} wallets={selectable} balances={balances?.balances} />
           </div>
         )}
-        <PickerChip icon={<CalendarDays className="size-5 text-primary" aria-hidden="true" />} label="Tanggal" text={date === todayKey() ? `Hari ini, ${formatDayShort(date)}` : formatRelativeDay(date)}>
+        <PickerChip icon={<CalendarDays className="size-4" aria-hidden="true" />} label="Tanggal" text={date === todayKey() ? `Hari ini, ${formatDayShort(date)}` : formatRelativeDay(date)}>
           <input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label="Tanggal" className="absolute inset-0 opacity-0" />
         </PickerChip>
-        <PickerChip icon={<Clock className="size-5 text-primary" aria-hidden="true" />} label="Jam" text={time}>
+        <PickerChip icon={<Clock className="size-4" aria-hidden="true" />} label="Jam" text={time}>
           <input type="time" value={time} onChange={(e) => e.target.value && setTime(e.target.value)} aria-label="Jam" className="absolute inset-0 opacity-0" />
         </PickerChip>
       </div>
 
-      <label className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface-muted px-4">
-        <NotebookPen className="size-5 shrink-0 text-text-muted" aria-hidden="true" />
+      <label className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-surface-muted px-4 focus-within:border-text">
+        <NotebookPen className="size-4 shrink-0 text-text-muted" aria-hidden="true" />
         <span className="sr-only">Catatan</span>
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           maxLength={NOTE_MAX}
           placeholder="Catatan (opsional)"
-          className="min-w-0 flex-1 bg-transparent py-3 outline-none placeholder:text-text-muted"
+          className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
         />
       </label>
 
       {negativeWarning && (
-        <p className="flex items-center gap-2 rounded-2xl bg-warning-soft px-4 py-3 text-sm">
-          <TriangleAlert className="size-5 shrink-0 text-warning" aria-hidden="true" /> {negativeWarning}
+        <p className="flex items-center gap-2 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-[13px] text-warning">
+          <TriangleAlert className="size-4 shrink-0" aria-hidden="true" /> {negativeWarning}
         </p>
       )}
 
       <AmountKeypad value={amount} onChange={setAmount} />
 
       {error && (
-        <p role="alert" className="rounded-2xl bg-expense-soft px-4 py-3 text-sm font-medium text-expense">
+        <p role="alert" className="rounded-xl border border-expense/30 bg-expense-soft px-4 py-3 text-sm font-medium text-expense">
           {error}
         </p>
       )}
@@ -333,21 +323,19 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
         type="button"
         onClick={save}
         disabled={saving}
-        className={`flex min-h-14 w-full items-center justify-between rounded-2xl px-5 text-lg font-semibold shadow-lg disabled:opacity-60 ${
-          accent === 'expense' ? 'bg-expense text-on-expense' : 'bg-primary text-on-primary'
-        }`}
+        className="flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 font-semibold text-on-primary active:opacity-90 disabled:opacity-60"
       >
-        <span>{existing ? 'Simpan Perubahan' : isTransfer ? 'Transfer Sekarang' : 'Simpan Transaksi'}</span>
-        <span className="rounded-full bg-white/15 px-3 py-1 text-base tabular-nums">{formatRupiah(amount)}</span>
+        <Check className="size-5" aria-hidden="true" />
+        {existing ? 'Simpan perubahan' : isTransfer ? 'Transfer' : 'Simpan'}
       </button>
 
       {existing && (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={duplicate} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-surface-muted font-semibold">
-            <CopyPlus className="size-5" aria-hidden="true" /> Duplikat
+          <button type="button" onClick={duplicate} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border text-sm font-semibold active:bg-surface-muted">
+            <CopyPlus className="size-4" aria-hidden="true" /> Duplikat
           </button>
-          <button type="button" onClick={remove} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-expense-soft font-semibold text-expense">
-            <Trash2 className="size-5" aria-hidden="true" /> Hapus
+          <button type="button" onClick={remove} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-expense/30 text-sm font-semibold text-expense active:bg-expense-soft">
+            <Trash2 className="size-4" aria-hidden="true" /> Hapus
           </button>
         </div>
       )}
@@ -355,18 +343,21 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   )
 }
 
-function CategoryTile({ category, selected, onSelect }: { category: Category; selected: boolean; onSelect: () => void }) {
+/** Category as a stamp-like pill; the selected one is filled with ink. */
+function CategoryChip({ category, selected, onSelect }: { category: Category; selected: boolean; onSelect: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className={`flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl p-2 text-xs ${
-        selected ? 'bg-surface font-semibold ring-2 ring-primary' : 'bg-surface-muted'
+      className={`flex min-h-11 items-center gap-2 rounded-full border px-3.5 text-[13px] ${
+        selected ? 'border-primary bg-primary font-semibold text-on-primary' : 'border-border bg-surface font-medium'
       }`}
     >
-      <IconBadge icon={category.icon} color={category.color} solid={selected} size="sm" />
-      <span className="line-clamp-2 leading-tight">{category.name}</span>
+      <span style={selected ? undefined : { color: category.color }} aria-hidden="true">
+        {createElement(iconFor(category.icon), { className: 'size-4', strokeWidth: 1.75 })}
+      </span>
+      {category.name}
     </button>
   )
 }
@@ -374,12 +365,12 @@ function CategoryTile({ category, selected, onSelect }: { category: Category; se
 function PickerChip({ icon, label, text, children }: { icon: ReactNode; label: string; text: string; children: ReactNode }) {
   return (
     // The native input covers the chip so a tap opens the OS picker directly.
-    <div className="relative flex min-h-14 items-center gap-3 rounded-2xl bg-surface-muted px-4">
-      {icon}
-      <span className="min-w-0">
-        <span className="block text-[11px] text-text-muted">{label}</span>
+    <div className="relative flex min-h-14 items-center gap-3 rounded-xl border border-border bg-surface-muted px-4 focus-within:border-text">
+      <span className="min-w-0 flex-1">
+        <span className="label-caps block">{label}</span>
         <span className="block truncate text-sm font-semibold">{text}</span>
       </span>
+      <span className="text-text-muted">{icon}</span>
       {children}
     </div>
   )
@@ -400,15 +391,16 @@ function WalletSelect({
 }) {
   const wallet = wallets.find((w) => w.id === value)
   return (
-    <label className="relative flex min-h-14 items-center gap-3 rounded-2xl bg-surface px-4">
-      {wallet ? <IconBadge icon={wallet.icon} color={wallet.color} size="sm" /> : <span className="size-9" />}
+    <label className="relative flex min-h-14 items-center gap-3 px-4">
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] text-text-muted">{label}</span>
-        <span className="block truncate text-sm font-semibold">
-          {wallet ? `${wallet.name} · ${formatRupiah(balances?.get(wallet.id) ?? 0)}` : 'Pilih dompet'}
+        <span className="label-caps block">{label}</span>
+        <span className="flex items-center gap-2 text-sm font-semibold">
+          {wallet && <span className="size-2 shrink-0 rounded-full" style={{ background: wallet.color }} aria-hidden="true" />}
+          <span className="truncate">{wallet ? wallet.name : 'Pilih dompet'}</span>
+          {wallet && <span className="shrink-0 font-normal text-text-muted">{formatRupiah(balances?.get(wallet.id) ?? 0)}</span>}
         </span>
       </span>
-      <ChevronDown className="size-5 text-text-muted" aria-hidden="true" />
+      <ChevronDown className="size-4 text-text-muted" aria-hidden="true" />
       <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} className="absolute inset-0 opacity-0">
         {!wallet && <option value="">Pilih dompet</option>}
         {wallets.map((w) => (

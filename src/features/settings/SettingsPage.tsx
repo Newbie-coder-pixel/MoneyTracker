@@ -59,7 +59,7 @@ export function SettingsPage() {
                 await setSetting('monthStartDay', Number(e.target.value))
                 await checkBudgets([todayKey()])
               }}
-              className="min-h-11 rounded-xl bg-surface-muted px-3 font-semibold"
+              className="min-h-11 rounded-xl border border-border bg-surface px-3 font-semibold"
             >
               {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d}>
@@ -84,7 +84,7 @@ export function SettingsPage() {
             <p id="theme-heading" className="mb-3 font-medium">
               Tema aplikasi
             </p>
-            <div role="radiogroup" aria-labelledby="theme-heading" className="grid grid-cols-3 gap-1 rounded-2xl bg-surface-muted p-1">
+            <div role="radiogroup" aria-labelledby="theme-heading" className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface-muted p-1">
               {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
                 const selected = preference === value
                 return (
@@ -94,7 +94,7 @@ export function SettingsPage() {
                     role="radio"
                     aria-checked={selected}
                     onClick={() => setPreference(value)}
-                    className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl text-sm font-medium ${selected ? 'bg-surface text-primary shadow-sm' : 'text-text-muted'}`}
+                    className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-lg border text-[13px] ${selected ? 'border-border bg-surface font-semibold text-text' : 'border-transparent font-medium text-text-muted'}`}
                   >
                     <Icon className="size-5" aria-hidden="true" />
                     {label}
@@ -109,24 +109,24 @@ export function SettingsPage() {
           {settings.pinHash ? (
             <>
               <button type="button" onClick={() => setPinFlow('change')} className="flex min-h-14 w-full items-center gap-3 px-4 text-left">
-                <KeyRound className="size-5 text-primary" aria-hidden="true" />
+                <KeyRound className="size-5" aria-hidden="true" />
                 <span className="flex-1 font-medium">Ubah PIN</span>
-                <ChevronRight className="size-5 text-text-muted" aria-hidden="true" />
+                <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
               </button>
               <button type="button" onClick={() => setPinFlow('remove')} className="flex min-h-14 w-full items-center gap-3 px-4 text-left">
                 <KeyRound className="size-5 text-text-muted" aria-hidden="true" />
                 <span className="flex-1 font-medium">Matikan kunci PIN</span>
-                <ChevronRight className="size-5 text-text-muted" aria-hidden="true" />
+                <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setPinFlow('set')} className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left">
-              <KeyRound className="size-5 text-primary" aria-hidden="true" />
+              <KeyRound className="size-5" aria-hidden="true" />
               <span className="flex-1">
                 <span className="block font-medium">Kunci dengan PIN</span>
                 <span className="block text-xs text-text-muted">4–6 digit. Terkunci otomatis setelah 1 menit di latar belakang. Hanya mengunci tampilan, bukan mengenkripsi data.</span>
               </span>
-              <ChevronRight className="size-5 text-text-muted" aria-hidden="true" />
+              <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
             </button>
           )}
         </Section>
@@ -135,7 +135,7 @@ export function SettingsPage() {
           <NavRow to="/pengingat" icon={Bell} label="Notifikasi & pengingat" hint={`Pengingat harian jam ${settings.dailyReminderTime}`} />
         </Section>
 
-        <section className="space-y-3 rounded-3xl border border-expense/30 bg-surface p-4">
+        <section className="space-y-3 rounded-xl border border-expense/30 bg-surface p-4">
           <h2 className="flex items-center gap-2 font-semibold text-expense">
             <TriangleAlert className="size-5" aria-hidden="true" /> Zona berbahaya
           </h2>
@@ -147,21 +147,21 @@ export function SettingsPage() {
                 <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} autoCapitalize="characters" className={inputClass} />
               </label>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setDeleting(false)} className="min-h-12 rounded-2xl bg-surface-muted font-semibold">
+                <button type="button" onClick={() => setDeleting(false)} className="min-h-12 rounded-full border border-border font-semibold">
                   Batal
                 </button>
                 <button
                   type="button"
                   disabled={confirmText.trim() !== 'HAPUS'}
                   onClick={() => void deleteAll()}
-                  className="min-h-12 rounded-2xl bg-expense font-semibold text-on-expense disabled:opacity-40"
+                  className="min-h-12 rounded-full bg-expense font-semibold text-on-expense disabled:opacity-40"
                 >
                   Hapus semua
                 </button>
               </div>
             </>
           ) : (
-            <button type="button" onClick={() => setDeleting(true)} className="min-h-12 w-full rounded-2xl bg-expense-soft font-semibold text-expense">
+            <button type="button" onClick={() => setDeleting(true)} className="min-h-12 w-full rounded-full border border-expense/30 font-semibold text-expense">
               Hapus semua data
             </button>
           )}
@@ -180,21 +180,21 @@ export function SettingsPage() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h2 className="mb-2 px-1 text-xs font-semibold tracking-[0.12em] text-text-muted uppercase">{title}</h2>
-      <div className="divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface">{children}</div>
+      <h2 className="mb-2 label-caps">{title}</h2>
+      <div className="card divide-y divide-border overflow-hidden">{children}</div>
     </section>
   )
 }
 
 function NavRow({ to, icon: Icon, label, hint }: { to: string; icon: LucideIcon; label: string; hint?: string }) {
   return (
-    <Link to={to} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-muted">
-      <Icon className="size-5 text-primary" aria-hidden="true" />
+    <Link to={to} className="flex min-h-14 items-center gap-3 px-4 py-3 active:bg-surface-muted">
+      <Icon className="size-5" aria-hidden="true" />
       <span className="flex-1">
         <span className="block font-medium">{label}</span>
         {hint && <span className="block text-xs text-text-muted">{hint}</span>}
       </span>
-      <ChevronRight className="size-5 text-text-muted" aria-hidden="true" />
+      <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
     </Link>
   )
 }

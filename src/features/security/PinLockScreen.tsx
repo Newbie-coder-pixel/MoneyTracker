@@ -24,9 +24,10 @@ export function PinLockScreen({ settings }: { settings: Settings }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-8 px-6 py-10">
       <div className="flex flex-col items-center gap-3 text-center">
-        <AppLogo className="size-16" />
-        <h1 className="flex items-center gap-2 text-xl font-bold">
-          <Lock className="size-5" aria-hidden="true" /> Masukkan PIN
+        <AppLogo className="size-14" />
+        <p className="label-caps">Money Tracker</p>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <Lock className="size-5" strokeWidth={1.75} aria-hidden="true" /> Masukkan PIN
         </h1>
       </div>
       <PinPad value={pin} onChange={setPin} onSubmit={(v) => void submit(v)} minLength={PIN_MIN} error={error} />

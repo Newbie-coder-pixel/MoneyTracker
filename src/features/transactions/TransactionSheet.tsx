@@ -30,10 +30,9 @@ export function TransactionSheet() {
   const ready = wallets && settings && (!sheet.editId || edit)
 
   const title = sheet.editId ? 'Ubah Transaksi' : 'Tambah Transaksi'
-  const subtitle = sheet.editId ? undefined : sheet.addKind === 'transfer' ? 'Pindahkan saldo antar dompet' : 'Catat dalam hitungan detik'
 
   return (
-    <Sheet open={sheet.isOpen} onClose={sheet.close} title={title} subtitle={subtitle}>
+    <Sheet open={sheet.isOpen} onClose={sheet.close} title={title}>
       {/* Mounted only while open, so every opening starts with a fresh form. */}
       {sheet.isOpen && ready && (
         <>
@@ -68,13 +67,13 @@ function AdjustmentDetail({ tx, walletName, onDone }: { tx: Transaction; walletN
   }
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl bg-surface-muted p-4">
-        <p className="text-sm text-text-muted">Penyesuaian saldo · {walletName}</p>
-        <p className="text-3xl font-bold tabular-nums">{formatSignedRupiah(tx.amount)}</p>
+      <div className="rounded-xl border border-border bg-surface-muted p-4">
+        <p className="label-caps">Penyesuaian saldo · {walletName}</p>
+        <p className="mt-1 text-3xl font-bold tracking-tight">{formatSignedRupiah(tx.amount)}</p>
         <p className="mt-1 text-sm text-text-muted">{formatDayLong(tx.date)}</p>
         <p className="mt-3 text-xs text-text-muted">Penyesuaian tidak dihitung di chart dan budget.</p>
       </div>
-      <button type="button" onClick={remove} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-expense-soft font-semibold text-expense">
+      <button type="button" onClick={remove} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-expense/30 font-semibold text-expense">
         <Trash2 className="size-5" aria-hidden="true" /> Hapus penyesuaian
       </button>
     </div>

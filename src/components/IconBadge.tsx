@@ -1,25 +1,25 @@
 import { createElement } from 'react'
-import { tint } from '../lib/palette'
 import { iconFor } from './icons'
 
 type IconBadgeProps = {
   icon: string
   color: string
   size?: 'sm' | 'md' | 'lg'
-  /** Solid fill (selected state) instead of a soft tint. */
+  /** Solid fill (selected state) instead of the paper tile. */
   solid?: boolean
 }
 
-const SIZES = { sm: 'size-9 [&>svg]:size-4', md: 'size-11 [&>svg]:size-5', lg: 'size-12 [&>svg]:size-6' }
+const SIZES = { sm: 'size-9 rounded-lg [&>svg]:size-4', md: 'size-11 rounded-[10px] [&>svg]:size-5', lg: 'size-12 rounded-xl [&>svg]:size-6' }
 
+/** Icon on a small paper tile; the user's picked colour inks the glyph. */
 export function IconBadge({ icon, color, size = 'md', solid = false }: IconBadgeProps) {
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-full ${SIZES[size]}`}
-      style={solid ? { background: color, color: '#fff' } : { background: tint(color, 0.15), color }}
+      className={`grid shrink-0 place-items-center border ${SIZES[size]} ${solid ? 'border-transparent' : 'border-border bg-surface-muted'}`}
+      style={solid ? { background: color, color: '#fff' } : { color }}
       aria-hidden="true"
     >
-      {createElement(iconFor(icon))}
+      {createElement(iconFor(icon), { strokeWidth: 1.75 })}
     </span>
   )
 }

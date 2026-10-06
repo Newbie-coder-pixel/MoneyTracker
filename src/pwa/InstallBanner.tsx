@@ -13,8 +13,8 @@ export function InstallBanner() {
   const dismiss = () => void setSetting('installHintDismissed', true)
 
   return (
-    <section className="flex items-start gap-3 rounded-3xl bg-primary-soft p-4">
-      <Download className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden="true" />
+    <section className="flex items-start gap-3 rounded-xl border border-border bg-surface-muted p-4">
+      <Download className="mt-0.5 size-6 shrink-0 text-accent" aria-hidden="true" />
       <div className="flex-1 text-sm">
         <p className="font-semibold">Pasang ke layar utama</p>
         {ios ? (

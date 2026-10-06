@@ -99,7 +99,7 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Misal: Kos, Netflix, Cicilan HP" className={inputClass} />
         </Field>
 
-        <div role="group" aria-label="Jenis" className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1">
+        <div role="group" aria-label="Jenis" className="grid grid-cols-3 gap-1 rounded-full border border-border bg-surface-muted p-1">
           {(
             [
               ['expense', 'Pengeluaran'],
@@ -115,7 +115,7 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
                 setType(t)
                 setCategoryId('')
               }}
-              className={`min-h-11 rounded-xl text-sm font-semibold ${type === t ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
+              className={`min-h-11 rounded-full text-sm font-semibold ${type === t ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
             >
               {label}
             </button>
@@ -168,7 +168,7 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
           <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={140} className={inputClass} />
         </Field>
 
-        <section className="space-y-4 rounded-3xl bg-surface p-4">
+        <section className="space-y-4 rounded-xl border border-border bg-surface p-4">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Frekuensi">
               <select value={frequency} onChange={(e) => setFrequency(e.target.value as Frequency)} className={inputClass}>
@@ -188,7 +188,7 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
                   inputMode="numeric"
                   value={interval}
                   onChange={(e) => setIntervalCount(Math.max(1, Math.min(99, Number(e.target.value) || 1)))}
-                  className="min-h-12 w-16 rounded-2xl bg-surface-muted px-3 text-center"
+                  className="min-h-12 w-16 rounded-xl border border-border bg-surface px-3 text-center outline-none focus-visible:border-text"
                 />
                 <span className="text-text-muted">{FREQUENCIES.find((f) => f.value === frequency)?.unit}</span>
               </div>
@@ -252,23 +252,23 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
                 inputMode="numeric"
                 value={maxCount}
                 onChange={(e) => setMaxCount(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
-                className="min-h-12 w-20 rounded-2xl bg-surface-muted px-3 text-center"
+                className="min-h-12 w-20 rounded-xl border border-border bg-surface px-3 text-center outline-none focus-visible:border-text"
               />
               kali
             </label>
           )}
-          <p className="text-sm font-medium text-primary">{describeSchedule(schedule)}</p>
+          <p className="text-sm font-medium text-accent">{describeSchedule(schedule)}</p>
         </section>
 
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-sm font-medium">Cara mencatat</legend>
+          <legend className="label-caps mb-2">Cara mencatat</legend>
           {(
             [
               ['confirm', 'Minta konfirmasi', 'Muncul di "Perlu dikonfirmasi"; kamu pilih Catat, Ubah nominal, atau Lewati.'],
               ['auto', 'Otomatis', 'Langsung dicatat saat jatuh tempo.'],
             ] as const
           ).map(([value, label, hint]) => (
-            <label key={value} className={`flex items-start gap-3 rounded-2xl p-4 ${mode === value ? 'bg-primary-soft ring-2 ring-primary' : 'bg-surface'}`}>
+            <label key={value} className={`flex items-start gap-3 rounded-xl p-4 ${mode === value ? 'border border-primary bg-surface-muted' : 'border border-border bg-surface'}`}>
               <input type="radio" name="mode" value={value} checked={mode === value} onChange={() => setMode(value)} className="mt-1 size-5 accent-primary" />
               <span>
                 <span className="block font-semibold">{label}</span>
@@ -280,11 +280,11 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
 
         {existing && <p className="text-xs text-text-muted">Perubahan hanya berlaku untuk kejadian berikutnya; transaksi yang sudah tercatat tidak berubah.</p>}
         {error && (
-          <p role="alert" className="rounded-2xl bg-expense-soft px-4 py-3 text-sm text-expense">
+          <p role="alert" className="rounded-xl border border-expense/30 bg-expense-soft px-4 py-3 text-sm text-expense">
             {error}
           </p>
         )}
-        <button type="button" onClick={() => void save()} className="min-h-14 w-full rounded-2xl bg-primary text-lg font-semibold text-on-primary">
+        <button type="button" onClick={() => void save()} className="min-h-13 w-full rounded-full bg-primary text-base font-semibold text-on-primary">
           Simpan jadwal
         </button>
         {existing && (
@@ -302,7 +302,7 @@ function RecurringForm({ existing }: { existing?: Recurring }) {
               showToast('Jadwal dihapus; transaksi yang sudah tercatat tetap ada')
               navigate('/lainnya/rutin', { replace: true })
             }}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-expense-soft font-semibold text-expense"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-expense/30 font-semibold text-expense"
           />
         )}
       </main>

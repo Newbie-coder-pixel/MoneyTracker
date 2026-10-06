@@ -7,20 +7,20 @@ import { ICONS } from './icons'
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block text-sm">
-      <span className="font-medium">{label}</span>
+      <span className="label-caps block">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-xs text-text-muted">{hint}</span>}
     </label>
   )
 }
 
-export const inputClass = 'mt-1 min-h-12 w-full rounded-2xl bg-surface-muted px-4 outline-none focus-visible:ring-2 focus-visible:ring-primary'
+export const inputClass = 'mt-1.5 min-h-12 w-full rounded-xl border border-border bg-surface px-4 outline-none focus-visible:border-text'
 
 /** Rupiah input that shows grouping while typing ("25.000"); negative allowed when `signed`. */
 export function AmountInput({ value, onChange, signed = false, id }: { value: number; onChange: (n: number) => void; signed?: boolean; id?: string }) {
   const [negative, setNegative] = useState(value < 0)
   return (
-    <div className="mt-1 flex gap-2">
+    <div className="mt-1.5 flex gap-2">
       {signed && (
         <button
           type="button"
@@ -29,12 +29,12 @@ export function AmountInput({ value, onChange, signed = false, id }: { value: nu
             onChange(-value)
           }}
           aria-label={negative ? 'Jadikan positif' : 'Jadikan negatif'}
-          className="min-h-12 w-12 rounded-2xl bg-surface-muted text-lg font-bold"
+          className="min-h-12 w-12 rounded-xl border border-border bg-surface-muted text-lg font-bold"
         >
           {negative ? '−' : '+'}
         </button>
       )}
-      <div className="flex min-h-12 flex-1 items-center rounded-2xl bg-surface-muted px-4 focus-within:ring-2 focus-within:ring-primary">
+      <div className="flex min-h-12 flex-1 items-center rounded-xl border border-border bg-surface px-4 focus-within:border-text">
         <span className="mr-2 text-text-muted">Rp</span>
         <input
           id={id}
@@ -63,7 +63,7 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (c: 
           aria-checked={value === color}
           aria-label={color}
           onClick={() => onChange(color)}
-          className="grid aspect-square place-items-center rounded-full"
+          className={`grid aspect-square place-items-center rounded-full ${value === color ? 'ring-2 ring-text ring-offset-2 ring-offset-surface' : ''}`}
           style={{ background: color }}
         >
           {value === color && <Check className="size-5 text-white" aria-hidden="true" />}
@@ -84,10 +84,10 @@ export function IconPicker({ value, color, onChange }: { value: string; color: s
           aria-checked={value === name}
           aria-label={name}
           onClick={() => onChange(name)}
-          className={`grid aspect-square place-items-center rounded-2xl ${value === name ? 'ring-2 ring-primary' : 'bg-surface-muted'}`}
+          className={`grid aspect-square place-items-center rounded-[10px] border ${value === name ? 'border-transparent' : 'border-border bg-surface-muted'}`}
           style={value === name ? { background: color, color: '#fff' } : undefined}
         >
-          {createElement(Icon, { className: 'size-5', 'aria-hidden': true })}
+          {createElement(Icon, { className: 'size-5', strokeWidth: 1.75, 'aria-hidden': true })}
         </button>
       ))}
     </div>

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CalendarDays, ChevronLeft, ChevronRight, Copy, Lightbulb, Plus, Repeat, Trash2 } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Copy, Plus, Repeat, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AppHeader } from '../../components/AppHeader'
 import { IconBadge } from '../../components/IconBadge'
@@ -17,7 +17,7 @@ import { daysRemaining, monthPeriodByKey, monthPeriodLabel, monthPeriodOf, shift
 import { announceBudgetAlerts } from './announce'
 
 const LEVEL = {
-  safe: { bar: 'bg-primary', badge: 'bg-income-soft text-income', label: 'Aman' },
+  safe: { bar: 'bg-accent', badge: 'bg-income-soft text-income', label: 'Aman' },
   warning: { bar: 'bg-warning', badge: 'bg-warning-soft text-warning', label: 'Hampir habis' },
   over: { bar: 'bg-expense', badge: 'bg-expense-soft text-expense', label: 'Terlampaui' },
 } satisfies Record<BudgetLevel, unknown>
@@ -70,61 +70,65 @@ function BudgetView({ period, currentKey, offset, setOffset }: { period: Period;
 
   return (
     <>
-      <AppHeader title="Budget" back />
+      <AppHeader title="Budget" eyebrow="Anggaran bulanan" back />
       <main className="space-y-4 p-4">
-        <div className="flex items-center gap-1 rounded-2xl bg-surface p-1">
-          <button type="button" onClick={() => setOffset(offset - 1)} aria-label="Bulan sebelumnya" className="grid size-11 place-items-center rounded-xl">
+        <div className="card flex items-center gap-1 p-1">
+          <button type="button" onClick={() => setOffset(offset - 1)} aria-label="Bulan sebelumnya" className="grid size-11 place-items-center rounded-lg active:bg-surface-muted">
             <ChevronLeft className="size-5" aria-hidden="true" />
           </button>
           <p className="flex flex-1 items-center justify-center gap-2 text-center text-sm font-semibold" aria-live="polite">
-            <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <CalendarDays className="size-4 shrink-0 text-text-muted" aria-hidden="true" />
             {monthPeriodLabel(period)}
           </p>
-          <button type="button" onClick={() => setOffset(offset + 1)} aria-label="Bulan berikutnya" className="grid size-11 place-items-center rounded-xl">
+          <button type="button" onClick={() => setOffset(offset + 1)} aria-label="Bulan berikutnya" className="grid size-11 place-items-center rounded-lg active:bg-surface-muted">
             <ChevronRight className="size-5" aria-hidden="true" />
           </button>
         </div>
 
-        <section className="rounded-3xl bg-surface p-4">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-sm text-text-muted">{total ? 'Total anggaran bulanan' : 'Jumlah semua budget kategori'}</p>
-              {summary ? (
-                <>
-                  <p className="text-3xl font-bold tabular-nums">{formatRupiah(summary.spent)}</p>
-                  <p className="text-sm text-text-muted">terpakai dari {formatRupiah(summary.amount)}</p>
-                </>
-              ) : (
-                <p className="mt-1 text-lg font-semibold">Belum ada budget</p>
-              )}
-            </div>
+        <section className="card p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="label-caps">{total ? 'Sisa total anggaran' : 'Sisa budget kategori'}</p>
             {summary && <LevelBadge spent={summary.spent} amount={summary.amount} />}
           </div>
-          {summary && (
+          {summary ? (
             <>
-              <ProgressBar spent={summary.spent} amount={summary.amount} />
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1">
-                  <Lightbulb className="size-4" aria-hidden="true" /> Sisa per hari <b>{formatRupiah(perDayAllowance(summary.amount, summary.spent, daysLeft))}</b>
+              <p className={`mt-2 text-[2rem] leading-10 font-bold tracking-tight ${summary.spent > summary.amount ? 'text-expense' : ''}`}>
+                {formatRupiah(Math.abs(summary.amount - summary.spent))}{' '}
+                <span className="text-sm font-normal tracking-normal text-text-muted">{summary.spent > summary.amount ? 'terlampaui' : 'tersisa'}</span>
+              </p>
+              <p className="mt-1 flex justify-between gap-2 text-[13px] text-text-muted">
+                <span>
+                  <b className="font-semibold text-text">{formatRupiah(summary.spent)}</b> terpakai
                 </span>
-                <span className="text-text-muted">{daysLeft > 0 ? `Sisa ${daysLeft} hari` : 'Periode selesai'}</span>
+                <span>
+                  dari <b className="font-semibold text-text">{formatRupiah(summary.amount)}</b>
+                </span>
+              </p>
+              <ProgressBar spent={summary.spent} amount={summary.amount} />
+              <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3 text-[13px] text-text-muted">
+                <span>
+                  Sisa per hari <b className="font-semibold text-text">{formatRupiah(perDayAllowance(summary.amount, summary.spent, daysLeft))}</b>
+                </span>
+                <span>{daysLeft > 0 ? `${daysLeft} hari lagi` : 'Periode selesai'}</span>
               </div>
             </>
+          ) : (
+            <p className="mt-2 text-lg font-semibold">Belum ada budget</p>
           )}
           <button
             type="button"
             onClick={() => setEditing({ categoryId: TOTAL_BUDGET_ID, budget: total?.budget })}
-            className="mt-3 min-h-11 w-full rounded-2xl bg-surface-muted text-sm font-semibold"
+            className="mt-4 min-h-11 w-full rounded-full border border-border text-[13px] font-semibold active:bg-surface-muted"
           >
             {total ? 'Ubah total anggaran' : 'Atur total anggaran (opsional)'}
           </button>
         </section>
 
         {rows && rows.length > 0 && (
-          <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-surface px-4">
-            <Repeat className="size-5 text-primary" aria-hidden="true" />
+          <label className="card flex min-h-16 items-center gap-3 px-4 py-2">
+            <Repeat className="size-5 text-text-muted" strokeWidth={1.75} aria-hidden="true" />
             <span className="flex-1">
-              <span className="block font-medium">Ulangi otomatis tiap bulan</span>
+              <span className="block text-[15px] font-semibold">Ulangi otomatis tiap bulan</span>
               <span className="block text-xs text-text-muted">Budget ini disalin ke periode berikutnya.</span>
             </span>
             <input type="checkbox" checked={autoRepeat} onChange={(e) => void setAutoRepeat(period.key, e.target.checked)} className="size-5 accent-primary" />
@@ -132,11 +136,11 @@ function BudgetView({ period, currentKey, offset, setOffset }: { period: Period;
         )}
 
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setEditing({})} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary font-semibold text-on-primary">
-            <Plus className="size-5" aria-hidden="true" /> Budget kategori
+          <button type="button" onClick={() => setEditing({})} className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-on-primary">
+            <Plus className="size-4" aria-hidden="true" /> Budget kategori
           </button>
-          <button type="button" onClick={() => void copyPrevious()} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-surface font-semibold">
-            <Copy className="size-5" aria-hidden="true" /> Salin bulan lalu
+          <button type="button" onClick={() => void copyPrevious()} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface text-sm font-semibold">
+            <Copy className="size-4" aria-hidden="true" /> Salin bulan lalu
           </button>
         </div>
 
@@ -155,30 +159,30 @@ function BudgetView({ period, currentKey, offset, setOffset }: { period: Period;
                   type="button"
                   aria-pressed={filter === f}
                   onClick={() => setFilter(f)}
-                  className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium ${filter === f ? 'bg-primary text-on-primary' : 'bg-surface'}`}
+                  className={`min-h-11 shrink-0 rounded-full border px-4 text-[13px] ${filter === f ? 'border-primary bg-primary font-semibold text-on-primary' : 'border-border bg-surface font-medium text-text-muted'}`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <ul className="space-y-2">
+            <ul className="card divide-y divide-border overflow-hidden">
               {visible.map(({ budget, spent }) => {
                 const c = categoryMap.get(budget.categoryId)
                 const left = budget.amount - spent
                 return (
                   <li key={budget.id}>
-                    <button type="button" onClick={() => setEditing({ categoryId: budget.categoryId, budget })} className="w-full rounded-3xl bg-surface p-4 text-left">
+                    <button type="button" onClick={() => setEditing({ categoryId: budget.categoryId, budget })} className={`w-full p-4 text-left active:bg-surface-muted ${left < 0 ? 'bg-expense-soft/40' : ''}`}>
                       <span className="flex items-center gap-3">
                         <IconBadge icon={c?.icon ?? 'ellipsis'} color={c?.color ?? '#78716c'} />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate font-semibold">{c?.name ?? 'Kategori'}</span>
+                          <span className="block truncate text-[15px] font-semibold">{c?.name ?? 'Kategori'}</span>
                           <span className="block text-xs text-text-muted tabular-nums">
                             {formatRupiah(spent)} / {formatRupiah(budget.amount)}
                           </span>
                         </span>
                         <span className="shrink-0 text-right">
                           <LevelBadge spent={spent} amount={budget.amount} />
-                          <span className={`mt-1 block text-sm font-semibold tabular-nums ${left < 0 ? 'text-expense' : ''}`}>
+                          <span className={`mt-1 block text-[13px] font-semibold ${left < 0 ? 'text-expense' : 'text-text-muted'}`}>
                             {left >= 0 ? `Sisa ${formatRupiah(left)}` : `Lewat ${formatRupiah(-left)}`}
                           </span>
                         </span>
@@ -212,7 +216,7 @@ function BudgetView({ period, currentKey, offset, setOffset }: { period: Period;
 function LevelBadge({ spent, amount }: { spent: number; amount: number }) {
   const level = LEVEL[budgetLevel(spent, amount)]
   // Status always carries a text label, never colour alone.
-  return <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${level.badge}`}>{budgetPercent(spent, amount)}% · {level.label}</span>
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${level.badge}`}>{budgetPercent(spent, amount)}% · {level.label}</span>
 }
 
 function ProgressBar({ spent, amount }: { spent: number; amount: number }) {
@@ -223,7 +227,7 @@ function ProgressBar({ spent, amount }: { spent: number; amount: number }) {
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}
-      className="mt-3 block h-2.5 overflow-hidden rounded-full bg-surface-muted"
+      className="mt-3 block h-1.5 overflow-hidden rounded-full bg-surface-muted"
     >
       <span className={`block h-full rounded-full ${LEVEL[budgetLevel(spent, amount)].bar}`} style={{ width: `${Math.min(100, pct)}%` }} />
     </span>
@@ -283,7 +287,7 @@ function BudgetForm({
           announceBudgetAlerts(alerts)
           onDone()
         }}
-        className="min-h-14 w-full rounded-2xl bg-primary text-lg font-semibold text-on-primary disabled:opacity-50"
+        className="min-h-13 w-full rounded-full bg-primary text-base font-semibold text-on-primary disabled:opacity-50"
       >
         Simpan
       </button>
@@ -295,7 +299,7 @@ function BudgetForm({
             showToast('Budget dihapus')
             onDone()
           }}
-          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-expense-soft font-semibold text-expense"
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-expense/30 font-semibold text-expense"
         >
           <Trash2 className="size-5" aria-hidden="true" /> Hapus budget
         </button>

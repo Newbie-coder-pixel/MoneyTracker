@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowRight, BellRing, ChevronLeft, Lock, Share, ShieldCheck, SquarePlus, WifiOff, Zap } from 'lucide-react'
+import { ArrowRight, BellRing, ChevronLeft, NotebookText, Share, ShieldCheck, SquarePlus, WifiOff, Zap } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { AppLogo } from '../../components/AppLogo'
 import { IconBadge } from '../../components/IconBadge'
@@ -34,22 +34,31 @@ export function Onboarding() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <header className="flex h-14 items-center gap-2">
-        {back[step] ? (
-          <button type="button" onClick={() => setStep(back[step]!)} aria-label="Kembali" className="-ml-2 grid size-11 place-items-center rounded-full">
-            <ChevronLeft className="size-6" aria-hidden="true" />
-          </button>
-        ) : (
-          <AppLogo className="size-9" />
+      {/* Ledger-style progress: "Langkah 1 dari 3" over three rules, as in the mockup. */}
+      <header className="pb-5">
+        <div className="flex h-11 items-center gap-2">
+          {back[step] && (
+            <button type="button" onClick={() => setStep(back[step]!)} aria-label="Kembali" className="-ml-3 grid size-11 place-items-center rounded-full">
+              <ChevronLeft className="size-5" aria-hidden="true" />
+            </button>
+          )}
+          <span className="label-caps flex-1">{stepNumber > 0 ? `Langkah ${stepNumber} dari 3` : 'Sebelum mulai'}</span>
+          <span className="label-caps">Money Tracker</span>
+        </div>
+        {stepNumber > 0 && (
+          <div className="mt-1 flex gap-2" aria-hidden="true">
+            {[1, 2, 3].map((n) => (
+              <span key={n} className={`h-1 flex-1 rounded-full ${n <= stepNumber ? 'bg-primary' : 'bg-border'}`} />
+            ))}
+          </div>
         )}
-        <span className="flex-1 font-bold text-primary">Money Tracker</span>
       </header>
 
       {step === 'install' && <InstallStep onContinue={() => setStep('welcome')} />}
       {step === 'welcome' && <WelcomeStep onNext={() => setStep('wallets')} onRestore={() => setStep('restore')} />}
       {step === 'restore' && (
-        <div className="flex-1 space-y-4 pt-4">
-          <h1 className="text-2xl font-bold">Pulihkan data</h1>
+        <div className="flex-1 space-y-4">
+          <h1 className="text-[1.75rem] leading-9 font-bold tracking-tight">Pulihkan data</h1>
           <p className="text-text-muted">Pilih file backup (.json) yang pernah kamu simpan dari Money Tracker.</p>
           <RestorePanel allowMerge={false} onRestored={() => void finish()} />
         </div>
@@ -57,14 +66,6 @@ export function Onboarding() {
       {step === 'wallets' && <WalletsStep onNext={() => setStep('reminder')} />}
       {step === 'reminder' && <ReminderStep />}
 
-      {stepNumber > 0 && (
-        <div className="mt-6 flex justify-center gap-1.5">
-          <span className="sr-only">Langkah {stepNumber} dari 3</span>
-          {[1, 2, 3].map((n) => (
-            <span key={n} aria-hidden="true" className={`h-2 rounded-full ${n === stepNumber ? 'w-8 bg-primary' : 'w-2 bg-border'}`} />
-          ))}
-        </div>
-      )}
     </main>
   )
 }
@@ -75,7 +76,7 @@ function Primary({ children, onClick, disabled }: { children: ReactNode; onClick
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-on-primary shadow-lg shadow-primary/20 disabled:opacity-60"
+      className="flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-primary text-base font-semibold text-on-primary disabled:opacity-60"
     >
       {children}
     </button>
@@ -84,8 +85,8 @@ function Primary({ children, onClick, disabled }: { children: ReactNode; onClick
 
 function InstallStep({ onContinue }: { onContinue: () => void }) {
   return (
-    <div className="flex flex-1 flex-col gap-5 pt-4">
-      <h1 className="text-2xl font-bold">Pasang dulu ke Layar Utama</h1>
+    <div className="flex flex-1 flex-col gap-5">
+      <h1 className="text-[1.75rem] leading-9 font-bold tracking-tight">Pasang dulu ke Layar Utama</h1>
       <p className="text-text-muted">Di iPhone, data di Safari dan di aplikasi yang dipasang itu terpisah. Pasang dulu supaya datamu tersimpan di tempat yang benar dan pengingat bisa jalan.</p>
       <ol className="space-y-3">
         {[
@@ -93,8 +94,8 @@ function InstallStep({ onContinue }: { onContinue: () => void }) {
           [<SquarePlus key="p" className="size-5" />, 'Tambahkan ke Layar Utama', 'Gulir menu lalu pilih "Add to Home Screen".'],
           [<AppLogo key="l" className="size-5" />, 'Buka dari ikon baru', 'Lanjutkan pengaturan di sana.'],
         ].map(([icon, title, hint], i) => (
-          <li key={i} className="flex items-start gap-3 rounded-2xl bg-surface p-4">
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">{icon}</span>
+          <li key={i} className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface-muted">{icon}</span>
             <span>
               <span className="block font-semibold">
                 {i + 1}. {title}
@@ -105,7 +106,7 @@ function InstallStep({ onContinue }: { onContinue: () => void }) {
         ))}
       </ol>
       <div className="mt-auto space-y-2">
-        <button type="button" onClick={onContinue} className="min-h-12 w-full rounded-full bg-surface font-semibold">
+        <button type="button" onClick={onContinue} className="min-h-12 w-full rounded-full border border-border bg-surface font-semibold">
           Lanjut di Safari
         </button>
         <p className="text-center text-xs text-text-muted">Data yang diisi di Safari tidak ikut ke aplikasi yang dipasang nanti.</p>
@@ -121,33 +122,36 @@ function WelcomeStep({ onNext, onRestore }: { onNext: () => void; onRestore: () 
     [<WifiOff key="w" className="size-5" />, 'Tetap jalan offline', 'Catat transaksi kapan saja tanpa kuota.'],
   ]
   return (
-    <div className="flex flex-1 flex-col gap-5 pt-4">
-      <div className="mx-auto grid size-24 place-items-center rounded-3xl bg-gradient-to-br from-hero-from to-hero-to text-on-hero shadow-lg">
-        <Lock className="size-10" aria-hidden="true" />
+    <div className="flex flex-1 flex-col gap-5">
+      <div className="grid size-14 place-items-center rounded-xl border border-border bg-surface-muted">
+        <NotebookText className="size-6" strokeWidth={1.75} aria-hidden="true" />
       </div>
-      <div className="text-center">
-        <p className="mx-auto mb-3 w-fit rounded-full bg-primary-soft px-3 py-1 text-sm font-semibold text-primary">100% privat & tanpa akun</p>
-        <h1 className="text-3xl font-bold">Kelola keuangan harian tanpa ribet</h1>
-        <p className="mt-2 text-text-muted">Catat pengeluaran dan pemasukan dalam hitungan detik.</p>
+      <div>
+        <h1 className="text-[2rem] leading-[1.15] font-bold tracking-tight">
+          Catat uangmu,
+          <br />
+          tanpa ribet.
+        </h1>
+        <p className="mt-3 text-text-muted">Semua data tersimpan di HP ini, tanpa akun. Data tidak tersinkron antar perangkat.</p>
       </div>
-      <ul className="space-y-2">
+      <ul className="card space-y-4 p-4">
         {points.map(([icon, title, hint]) => (
-          <li key={title} className="flex items-start gap-3 rounded-2xl bg-surface p-4">
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-muted text-primary">{icon}</span>
+          <li key={title} className="flex items-start gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface-muted text-accent">{icon}</span>
             <span>
-              <span className="block font-semibold">{title}</span>
-              <span className="block text-sm text-text-muted">{hint}</span>
+              <span className="block text-[15px] font-semibold">{title}</span>
+              <span className="block text-[13px] text-text-muted">{hint}</span>
             </span>
           </li>
         ))}
       </ul>
       <div className="mt-auto space-y-3">
         <Primary onClick={onNext}>
-          Mulai atur dompet <ArrowRight className="size-5" aria-hidden="true" />
+          Mulai <ArrowRight className="size-5" aria-hidden="true" />
         </Primary>
         <p className="text-center text-sm text-text-muted">
           Sudah punya file backup?{' '}
-          <button type="button" onClick={onRestore} className="min-h-11 font-semibold text-primary underline underline-offset-2">
+          <button type="button" onClick={onRestore} className="min-h-11 font-semibold text-accent underline underline-offset-2">
             Pulihkan data
           </button>
         </p>
@@ -182,12 +186,12 @@ function WalletsStep({ onNext }: { onNext: () => void }) {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 pt-2">
-      <p className="w-fit rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">Langkah 2: Dompet & akun</p>
-      <h1 className="text-2xl font-bold">Berapa saldo awalmu?</h1>
+    <div className="flex flex-1 flex-col gap-4">
+      <p className="label-caps">Langkah 2: Dompet & akun</p>
+      <h1 className="text-[1.75rem] leading-9 font-bold tracking-tight">Berapa saldo awalmu?</h1>
       <p className="text-sm text-text-muted">Isi saldo dompet yang sering kamu pakai. Tidak harus pas; nanti bisa disesuaikan.</p>
 
-      <section className="rounded-3xl bg-surface p-4">
+      <section className="rounded-xl border border-border bg-surface p-4">
         <div className="flex items-center gap-3">
           <IconBadge icon="banknote" color="#059669" />
           <span className="font-semibold">Uang tunai (Cash)</span>
@@ -199,9 +203,9 @@ function WalletsStep({ onNext }: { onNext: () => void }) {
       <p className="text-xs text-text-muted">Kartu kredit dan dompet lain bisa ditambah nanti di Lainnya → Dompet.</p>
 
       <div className="mt-auto space-y-3">
-        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-hero-from to-hero-to px-4 py-3 text-on-hero">
-          <span className="text-sm">Total saldo awal</span>
-          <span className="text-xl font-bold tabular-nums">{formatRupiah(total)}</span>
+        <div className="flex items-baseline justify-between border-t border-border pt-3">
+          <span className="label-caps">Total saldo awal</span>
+          <span className="text-xl font-bold tracking-tight">{formatRupiah(total)}</span>
         </div>
         <Primary onClick={() => void save()} disabled={saving}>
           Lanjut ke pengingat <ArrowRight className="size-5" aria-hidden="true" />
@@ -231,7 +235,7 @@ function OptionalWallet({
   const invalid = showError && missingName(value)
   const errorId = `${label.replace(/\W+/g, '-').toLowerCase()}-error`
   return (
-    <section className={`rounded-3xl bg-surface p-4 ${value.on ? '' : 'opacity-70'}`}>
+    <section className={`rounded-xl border border-border bg-surface p-4 ${value.on ? '' : 'opacity-70'}`}>
       <label className="flex items-center gap-3">
         <IconBadge icon={icon} color={color} />
         <span className="flex-1 font-semibold">{label}</span>
@@ -265,7 +269,7 @@ function OptionalWallet({
               autoFocus
               aria-invalid={invalid}
               aria-describedby={invalid ? errorId : undefined}
-              className={`${inputClass} ${invalid ? 'ring-2 ring-expense' : ''}`}
+              className={`${inputClass} ${invalid ? 'border-expense' : ''}`}
             />
           )}
           {invalid && (
@@ -302,13 +306,13 @@ function ReminderStep() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 pt-2">
-      <p className="w-fit rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">Langkah terakhir</p>
-      <h1 className="text-2xl font-bold">Jangan lupa catat setiap hari</h1>
+    <div className="flex flex-1 flex-col gap-4">
+      <p className="label-caps">Langkah terakhir</p>
+      <h1 className="text-[1.75rem] leading-9 font-bold tracking-tight">Jangan lupa catat setiap hari</h1>
       <p className="text-sm text-text-muted">Pengingat hanya muncul kalau hari itu kamu belum mencatat apa pun.</p>
-      <section className="rounded-3xl bg-surface p-4">
+      <section className="rounded-xl border border-border bg-surface p-4">
         <p className="flex items-center gap-2 font-semibold">
-          <BellRing className="size-5 text-warning" aria-hidden="true" /> Pengingat harian
+          <BellRing className="size-5" aria-hidden="true" /> Pengingat harian
         </p>
         <p className="mt-1 text-sm text-text-muted">Geser untuk memilih jam. Rekomendasi: 21:00.</p>
         <div className="mt-3">
@@ -316,12 +320,12 @@ function ReminderStep() {
         </div>
       </section>
       {ios && (
-        <p className="rounded-2xl bg-warning-soft px-4 py-3 text-sm">
+        <p className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm">
           iPhone mewajibkan aplikasi dipasang di Layar Utama (iOS 16.4+) sebelum notifikasi bisa diizinkan: <b>Bagikan → Tambahkan ke Layar Utama</b>, lalu buka dari ikonnya.
         </p>
       )}
       {message && (
-        <p role="alert" className="rounded-2xl bg-warning-soft px-4 py-3 text-sm">
+        <p role="alert" className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm">
           {message}
         </p>
       )}

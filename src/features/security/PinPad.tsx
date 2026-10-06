@@ -32,7 +32,7 @@ export function PinPad({
           {value.length} digit dimasukkan
         </span>
         {Array.from({ length: PIN_MAX }, (_, i) => (
-          <span key={i} aria-hidden="true" className={`size-3.5 rounded-full ${i < value.length ? 'bg-primary' : 'bg-border'}`} />
+          <span key={i} aria-hidden="true" className={`size-3 rounded-full border ${i < value.length ? 'border-primary bg-primary' : 'border-text-muted/50'}`} />
         ))}
       </div>
       <p role="alert" className="min-h-5 text-center text-sm text-expense">
@@ -46,7 +46,7 @@ export function PinPad({
               type="button"
               disabled={value.length < minLength}
               onClick={() => onSubmit(value)}
-              className="h-16 rounded-2xl bg-primary text-base font-bold text-on-primary disabled:opacity-30"
+              className="h-14 rounded-xl bg-primary text-base font-semibold text-on-primary disabled:opacity-30"
             >
               OK
             </button>
@@ -56,7 +56,7 @@ export function PinPad({
               type="button"
               onClick={() => press(key)}
               aria-label={key === 'back' ? 'Hapus' : key}
-              className="grid h-16 place-items-center rounded-2xl bg-surface text-2xl font-semibold active:bg-primary-soft"
+              className="grid h-14 place-items-center rounded-xl border border-border bg-surface text-xl font-semibold active:bg-surface-muted"
             >
               {key === 'back' ? <Delete className="size-6" aria-hidden="true" /> : key}
             </button>

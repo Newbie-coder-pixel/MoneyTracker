@@ -19,7 +19,7 @@ import { refreshReminders } from './refresh'
 
 const KIND_LABEL: Record<Reminder['kind'], { label: string; className: string }> = {
   daily: { label: 'Pengingat harian', className: 'bg-income-soft text-income' },
-  bill: { label: 'Tagihan rutin', className: 'bg-primary-soft text-primary' },
+  bill: { label: 'Tagihan rutin', className: 'bg-surface-muted text-text' },
   credit: { label: 'Kartu kredit', className: 'bg-expense-soft text-expense' },
   budget: { label: 'Budget', className: 'bg-warning-soft text-warning' },
   backup: { label: 'Backup', className: 'bg-surface-muted text-text-muted' },
@@ -114,12 +114,12 @@ export function RemindersPage() {
       <AppHeader title="Pengingat" back />
       <main className="space-y-4 p-4">
         <div className="flex items-center justify-between gap-2">
-          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusChip.className}`}>Notifikasi: {statusChip.text}</span>
+          <span className={`rounded-full px-3 py-1 text-[13px] font-semibold ${statusChip.className}`}>Notifikasi: {statusChip.text}</span>
           {!!reminders?.length && (
             <button
               type="button"
               onClick={() => void Promise.all(reminders.map((r) => setReminderStatus(r.id, 'done')))}
-              className="flex min-h-11 items-center gap-1 rounded-full px-3 text-sm font-semibold text-primary"
+              className="flex min-h-11 items-center gap-1 rounded-full px-3 text-sm font-semibold text-accent"
             >
               <CheckCheck className="size-4" aria-hidden="true" /> Tandai dibaca
             </button>
@@ -129,7 +129,7 @@ export function RemindersPage() {
         {reminders?.length ? (
           <ul className="space-y-2">
             {reminders.map((r) => (
-              <li key={r.id} className="rounded-3xl bg-surface p-4">
+              <li key={r.id} className="rounded-xl border border-border bg-surface p-4">
                 <div className="flex items-start gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2 text-xs">
@@ -147,7 +147,7 @@ export function RemindersPage() {
                   <Link
                     to={r.link}
                     onClick={() => void setReminderStatus(r.id, 'done')}
-                    className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-full bg-surface-muted px-4 text-sm font-semibold"
+                    className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-full border border-border px-4 text-sm font-semibold"
                   >
                     {r.kind === 'daily' ? 'Catat sekarang' : 'Buka'} <ChevronRight className="size-4" aria-hidden="true" />
                   </Link>
@@ -156,14 +156,14 @@ export function RemindersPage() {
             ))}
           </ul>
         ) : (
-          <p className="rounded-3xl bg-surface px-4 py-8 text-center text-sm text-text-muted">Tidak ada pengingat saat ini.</p>
+          <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-sm text-text-muted">Tidak ada pengingat saat ini.</p>
         )}
 
-        <section className="space-y-4 rounded-3xl bg-surface p-4">
-          <h2 className="text-lg font-semibold">Pengaturan notifikasi</h2>
+        <section className="space-y-4 rounded-xl border border-border bg-surface p-4">
+          <h2 className="text-base font-semibold">Pengaturan notifikasi</h2>
 
           <label className="flex min-h-14 items-center gap-3">
-            {pushOn ? <BellRing className="size-5 text-primary" aria-hidden="true" /> : <BellOff className="size-5 text-text-muted" aria-hidden="true" />}
+            {pushOn ? <BellRing className="size-5" aria-hidden="true" /> : <BellOff className="size-5 text-text-muted" aria-hidden="true" />}
             <span className="flex-1">
               <span className="block font-medium">Notifikasi di perangkat</span>
               <span className="block text-xs text-text-muted">Pengingat harian dan jatuh tempo, walau aplikasi tertutup.</span>
@@ -172,18 +172,18 @@ export function RemindersPage() {
           </label>
 
           {isIOS() && !isStandalone() && (
-            <p className="rounded-2xl bg-warning-soft px-4 py-3 text-sm">
+            <p className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm">
               iPhone hanya mengirim notifikasi dari aplikasi yang sudah dipasang: di Safari ketuk <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b>, lalu buka dari ikon
               barunya (iOS 16.4+).
             </p>
           )}
           {status === 'denied' && (
-            <p className="rounded-2xl bg-expense-soft px-4 py-3 text-sm">
+            <p className="rounded-xl border border-expense/30 bg-expense-soft px-4 py-3 text-sm">
               Notifikasi diblokir. Buka pengaturan browser → Setelan situs → Notifikasi, izinkan untuk situs ini, lalu muat ulang aplikasi.
             </p>
           )}
           {message && (
-            <p role="alert" className="rounded-2xl bg-warning-soft px-4 py-3 text-sm">
+            <p role="alert" className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm">
               {message}
             </p>
           )}
@@ -195,7 +195,7 @@ export function RemindersPage() {
               <div className="mt-2 space-y-2">
                 <TimeWheel value={draftTime ?? settings.dailyReminderTime} onChange={setDraftTime} />
                 {draftTime && draftTime !== settings.dailyReminderTime && (
-                  <button type="button" onClick={() => void changeTime(draftTime)} className="min-h-12 w-full rounded-2xl bg-primary font-semibold text-on-primary">
+                  <button type="button" onClick={() => void changeTime(draftTime)} className="min-h-12 w-full rounded-full bg-primary font-semibold text-on-primary">
                     Simpan jam {draftTime}
                   </button>
                 )}
@@ -207,16 +207,16 @@ export function RemindersPage() {
             <button
               type="button"
               onClick={async () => showToast((await sendTestPush()) ? 'Notifikasi uji dikirim' : 'Gagal mengirim notifikasi uji', { tone: 'default' })}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-surface-muted font-semibold"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border font-semibold"
             >
               <Send className="size-5" aria-hidden="true" /> Kirim notifikasi uji
             </button>
           )}
 
-          <div className="border-t border-border/60 pt-4">
-            <p className="text-sm font-medium">Cadangan: pengingat di kalender</p>
+          <div className="border-t border-border pt-4">
+            <p className="label-caps">Cadangan: pengingat di kalender</p>
             <p className="text-xs text-text-muted">Unduh file .ics berisi alarm harian dan jadwal tagihan, lalu buka di Google Calendar atau Kalender iPhone. Tanpa nominal.</p>
-            <button type="button" onClick={() => void exportIcs()} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary-soft font-semibold text-primary">
+            <button type="button" onClick={() => void exportIcs()} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border font-semibold active:bg-surface-muted">
               <CalendarPlus className="size-5" aria-hidden="true" /> Tambahkan ke Kalender
             </button>
           </div>

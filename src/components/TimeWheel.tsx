@@ -16,7 +16,7 @@ export function TimeWheel({ value, onChange, minuteStep = 5 }: { value: string; 
 
   return (
     <div className="relative flex items-center justify-center gap-1">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-1/2 h-11 -translate-y-1/2 rounded-full bg-surface-muted" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-1/2 h-11 -translate-y-1/2 rounded-xl border border-border bg-surface-muted" />
       <Wheel items={HOURS} value={h} onChange={(hour) => onChange(`${hour}:${m}`)} label="Jam" />
       <span aria-hidden="true" className="relative text-2xl font-semibold">
         :
@@ -65,7 +65,7 @@ function Wheel({ items, value, onChange, label }: { items: string[]; value: stri
       aria-valuetext={items[active]}
       onScroll={onScroll}
       onKeyDown={onKeyDown}
-      className="relative h-[220px] w-20 snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-2xl outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-scrollbar]:hidden"
+      className="relative h-[220px] w-20 snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-xl outline-none [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-scrollbar]:hidden"
       style={{ paddingBlock: ITEM * 2, maskImage: 'linear-gradient(transparent, #000 35%, #000 65%, transparent)' }}
     >
       {items.map((item, i) => (

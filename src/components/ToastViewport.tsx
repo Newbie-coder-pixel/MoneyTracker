@@ -2,7 +2,7 @@ import { dismissToast, useToasts } from './toast'
 
 const TONES = {
   default: 'bg-text text-bg',
-  warning: 'bg-warning-soft text-text border border-warning/40',
+  warning: 'border border-warning/40 bg-warning-soft text-text',
   danger: 'bg-expense text-on-expense',
 }
 
@@ -18,7 +18,7 @@ export function ToastViewport() {
         <div
           key={t.id}
           role="status"
-          className={`pointer-events-auto flex min-h-12 items-center gap-3 rounded-2xl px-4 py-2 text-sm font-medium shadow-lg motion-safe:animate-[toast-in_150ms_ease-out] ${TONES[t.tone]}`}
+          className={`pointer-events-auto flex min-h-12 items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium motion-safe:animate-[toast-in_150ms_ease-out] ${TONES[t.tone]}`}
         >
           <span className="flex-1">{t.message}</span>
           {t.action && (

@@ -79,8 +79,8 @@ function WalletForm({ existing }: { existing?: Wallet }) {
         </div>
 
         <fieldset>
-          <legend className="text-sm font-medium">Tipe</legend>
-          <div className="mt-1 grid grid-cols-4 gap-1 rounded-2xl bg-surface-muted p-1">
+          <legend className="label-caps">Tipe</legend>
+          <div className="mt-1.5 grid grid-cols-4 gap-1 rounded-full border border-border bg-surface-muted p-1">
             {WALLET_TYPES.map((t) => (
               <button
                 key={t.type}
@@ -88,7 +88,7 @@ function WalletForm({ existing }: { existing?: Wallet }) {
                 aria-pressed={type === t.type}
                 disabled={!!existing && existing.type !== t.type && (existing.type === 'credit' || t.type === 'credit')}
                 onClick={() => pickType(t.type)}
-                className={`min-h-11 rounded-xl text-xs font-semibold disabled:opacity-40 ${type === t.type ? 'bg-surface text-primary shadow-sm' : 'text-text-muted'}`}
+                className={`min-h-11 rounded-full text-xs font-semibold disabled:opacity-40 ${type === t.type ? 'bg-primary text-on-primary' : 'text-text-muted'}`}
               >
                 {t.label}
               </button>
@@ -109,7 +109,7 @@ function WalletForm({ existing }: { existing?: Wallet }) {
         </Field>
 
         {type === 'credit' && (
-          <section className="space-y-4 rounded-3xl bg-surface p-4">
+          <section className="space-y-4 rounded-xl border border-border bg-surface p-4">
             <Field label="Limit kartu">
               <AmountInput value={creditLimit} onChange={setCreditLimit} />
             </Field>
@@ -136,7 +136,7 @@ function WalletForm({ existing }: { existing?: Wallet }) {
           </section>
         )}
 
-        <label className="flex min-h-14 items-center justify-between gap-3 rounded-2xl bg-surface px-4">
+        <label className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4">
           <span>
             <span className="block font-medium">Sertakan dalam saldo total</span>
             <span className="block text-xs text-text-muted">Matikan untuk menyembunyikan tabungan dari saldo total.</span>
@@ -145,20 +145,20 @@ function WalletForm({ existing }: { existing?: Wallet }) {
         </label>
 
         <div>
-          <p className="text-sm font-medium">Warna</p>
+          <p className="label-caps">Warna</p>
           <ColorPicker value={color} onChange={setColor} />
         </div>
         <div>
-          <p className="text-sm font-medium">Ikon</p>
+          <p className="label-caps">Ikon</p>
           <IconPicker value={icon} color={color} onChange={setIcon} />
         </div>
 
         {error && (
-          <p role="alert" className="rounded-2xl bg-expense-soft px-4 py-3 text-sm text-expense">
+          <p role="alert" className="rounded-xl border border-expense/30 bg-expense-soft px-4 py-3 text-sm text-expense">
             {error}
           </p>
         )}
-        <button type="button" onClick={save} className="min-h-14 w-full rounded-2xl bg-primary text-lg font-semibold text-on-primary">
+        <button type="button" onClick={save} className="min-h-13 w-full rounded-full bg-primary text-base font-semibold text-on-primary">
           Simpan
         </button>
       </main>
