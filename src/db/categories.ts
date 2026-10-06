@@ -1,3 +1,4 @@
+import { PICKER_COLORS } from '../lib/palette'
 import { newId } from './ids'
 import { db } from './schema'
 import type { Category, CategoryKind } from './types'
@@ -18,6 +19,21 @@ export async function saveCategory(draft: CategoryDraft, existingId?: string): P
   const last = (await db.categories.where('kind').equals(draft.kind).toArray()).reduce((m, c) => Math.max(m, c.order), 0)
   await db.categories.add({ ...draft, name, id, isDefault: false, archived: false, order: last + 1, createdAt: Date.now() })
   return id
+}
+
+/**
+ * Category typed in the transaction form after picking "Lainnya": reuses an active
+ * category of the same kind with that name (case-insensitive), otherwise creates one.
+ */
+export async function findOrCreateCategory(name: string, kind: CategoryKind): Promise<{ id: string; created: boolean }> {
+  const wanted = name.trim().toLowerCase()
+  if (!wanted) throw new Error('Nama kategori baru wajib diisi')
+  const ofKind = await db.categories.where('kind').equals(kind).toArray()
+  const match = ofKind.find((c) => !c.archived && c.name.trim().toLowerCase() === wanted)
+  if (match && isOtherCategory(match)) throw new Error('Tulis nama kategori selain "Lainnya"')
+  if (match) return { id: match.id, created: false }
+  const color = PICKER_COLORS[ofKind.length % PICKER_COLORS.length]
+  return { id: await saveCategory({ name, kind, icon: 'sparkles', color }), created: true }
 }
 
 async function isUsed(id: string): Promise<boolean> {

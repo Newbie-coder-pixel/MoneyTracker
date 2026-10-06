@@ -2,7 +2,9 @@ import { ArrowDownUp, CalendarDays, ChevronDown, Clock, CopyPlus, NotebookPen, R
 import { useMemo, useState, type ReactNode } from 'react'
 import { AmountKeypad } from '../../components/AmountKeypad'
 import { IconBadge } from '../../components/IconBadge'
+import { inputClass } from '../../components/Pickers'
 import { showToast } from '../../components/toast'
+import { deleteCategory, findOrCreateCategory, isOtherCategory } from '../../db/categories'
 import { useBalances, useCategoriesByUsage } from '../../db/hooks'
 import {
   deleteTransaction,
@@ -61,6 +63,7 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showAllCategories, setShowAllCategories] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
 
   // Refunds pick the original expense category (FR-1.9).
   const categoryKind = kind === 'expense' || isRefund ? 'expense' : 'income'
@@ -71,11 +74,16 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const isTransfer = kind === 'transfer'
   const selectable = wallets.filter((w) => !w.archived || w.id === walletId || w.id === toWalletId)
   const accent = kind === 'expense' ? 'expense' : 'primary'
+  // Picking "Lainnya" requires naming a new category. Refunds are exempt (they point at an
+  // existing expense category), and so is an edit that leaves an old "Lainnya" untouched.
+  const selectedCategory = categories?.find((c) => c.id === categoryId)
+  const needsNewCategory = !isRefund && !!selectedCategory && isOtherCategory(selectedCategory) && existing?.categoryId !== categoryId
 
   const switchKind = (next: AddKind) => {
     setKind(next)
     setIsRefund(false)
     setCategoryId(undefined)
+    setNewCategoryName('')
     setError(null)
   }
 
@@ -100,15 +108,29 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const save = async () => {
     setSaving(true)
     setError(null)
+    let finalCategoryId = categoryId
+    let createdCategoryId: string | undefined
     try {
+      if (needsNewCategory) {
+        try {
+          const result = await findOrCreateCategory(newCategoryName, categoryKind)
+          finalCategoryId = result.id
+          if (result.created) createdCategoryId = result.id
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Kategori baru gagal dibuat')
+          return
+        }
+      }
       const { alerts } = await saveTransaction(
-        { type, amount, categoryId, walletId, toWalletId, date, time, note, adminFee: isTransfer ? adminFee : undefined },
+        { type, amount, categoryId: finalCategoryId, walletId, toWalletId, date, time, note, adminFee: isTransfer ? adminFee : undefined },
         existing?.id,
       )
       onDone()
       showToast(existing ? 'Perubahan disimpan' : 'Tersimpan')
       announceBudgetAlerts(alerts)
     } catch (e) {
+      // Don't leave an unused category behind when the transaction itself was rejected.
+      if (createdCategoryId) await deleteCategory(createdCategoryId).catch(() => {})
       if (e instanceof ValidationError) setError(e.message)
       else throw e
     } finally {
@@ -230,7 +252,7 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
           <div className="mb-2 flex items-baseline justify-between">
             <h3 className="font-semibold">Pilih Kategori</h3>
             <span className={`text-sm font-semibold ${accent === 'expense' ? 'text-expense' : 'text-primary'}`}>
-              {categories?.find((c) => c.id === categoryId)?.name}
+              {selectedCategory?.name}
             </span>
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -248,6 +270,22 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
               </button>
             )}
           </div>
+          {needsNewCategory && (
+            <label className="mt-3 block text-sm font-semibold">
+              Nama kategori baru
+              <input
+                autoFocus
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                maxLength={30}
+                placeholder="Misal: Kopi"
+                className={`${inputClass} font-normal`}
+              />
+              <span className="mt-1 block text-xs font-normal text-text-muted">
+                Wajib diisi. Kategori ini tersimpan dan bisa dipilih lagi nanti.
+              </span>
+            </label>
+          )}
         </section>
       )}
 

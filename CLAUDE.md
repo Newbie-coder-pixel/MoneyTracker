@@ -20,11 +20,12 @@ npm run preview      # serve the build; the service worker isn't built in dev (n
 npm run lint         # oxlint (the Vite template's linter, used instead of ESLint)
 npm run typecheck    # tsc -b across app, sw, api and node configs
 npm test             # vitest run: src/**/*.test.ts and api/**/*.test.ts
+npm run test:watch   # vitest in watch mode
 npx vitest run src/lib/recurring.test.ts   # single file
 npx vitest run -t "re-arms after a delete"   # single test by name
 ```
 
-`tsc -b` covers four project references (`tsconfig.{app,sw,api,node}.json`). `api/**/*.test.ts` is excluded from `tsconfig.api.json`, so those tests run under Vitest but are not typechecked.
+`tsc -b` covers four project references (`tsconfig.{app,sw,api,node}.json`). `api/**/*.test.ts` is excluded from `tsconfig.api.json`, so those tests run under Vitest but are not typechecked. Vitest only picks up `.test.ts` in the default node environment (no jsdom, no component tests), so logic that needs a test has to live outside `.tsx` files (see `features/transactions/addSheetParam.ts`).
 
 ## Stack
 
@@ -38,6 +39,7 @@ React 19, TypeScript, Vite 8, Tailwind v4 (CSS-first config in `src/index.css`),
   - Schema change: add `this.version(n+1).stores(...).upgrade(...)` and bump `SCHEMA_VERSION`. `migrationBackup.ts` snapshots the old DB into `money-tracker-premigration` before Dexie opens (FR-10.6), so it must run before the first `db` access (see `app/startup.ts`).
   - Booleans (`archived`, `paused`) can't be IndexedDB keys, so they're filtered in memory. The total budget uses `categoryId = TOTAL_BUDGET_ID` (not null).
 - **`src/app/`**: `RootLayout` runs `startup.ts` once (migration snapshot → seed → recurring catch-up → budget carry-over → reminders → `storage.persist()` → push re-sync), then gates on PIN lock → onboarding → routes. `TabLayout` holds the 4 bottom-nav tabs. `SubPageLayout` holds screens under `/lainnya/*` and `/pengingat` (back arrow, no nav). Route paths are Indonesian (`/riwayat`, `/statistik`, `/lainnya/dompet/:id/ubah`), all declared in `router.tsx`.
+- **`src/features/`** holds one folder per screen area, named in English while routes and UI text are Indonesian (`more` = Lainnya, `transactions/HistoryPage` = Riwayat, `stats` = Statistik, `recurring` = Rutin, `wallets` = Dompet). Shared primitives (`Sheet`, `AmountKeypad`, `Pickers`, `TimeWheel`) are in `src/components/`.
 - **Module-level UI stores:** toasts (`components/toast.ts`) and the PIN lock (`features/security/lockState.ts`) are plain module state read through `useSyncExternalStore`, not context. `showToast()` can therefore be called from non-React code (see `features/budgets/announce.ts`). Deleting a transaction shows a 5 s "Urungkan" toast that calls `restoreTransactions`. The lock starts locked on every page load and re-locks after `AUTO_LOCK_MS` (60 s) in the background.
 - **Icons** are stored in the DB by name and resolved through the explicit registry in `components/icons.ts` (unknown names fall back to `Ellipsis`). Add new pickable icons there, not with `import *`, so Lucide stays tree-shaken.
 - **Transaction sheet** is global (in `RootLayout`), driven by search params: `?add=expense|income|transfer`, `?edit=<id>`, and optional `from_wallet`/`to_wallet` prefill. Notifications deep-link to `/?add=expense`. Riwayat filters also live in the URL (`q,type,cat,wallet,from,to,min,max`), which is how Statistik drills down (FR-5.5).
@@ -49,6 +51,15 @@ React 19, TypeScript, Vite 8, Tailwind v4 (CSS-first config in `src/index.css`),
 - **Styling:** use only the semantic tokens in `src/index.css` (`bg-surface`, `text-text-muted`, `text-expense`, `from-hero-from`, `--chart-*`, ...), never raw colours. The one exception is the user-pickable category/wallet colours in `lib/palette.ts` (`PICKER_COLORS`), which are stored hex values. Each token has a light value and a `.dark` value. Chart series colours were validated for colour-blind safety: bars use `--chart-expense` (red) and `--chart-income` (blue), not green. Recharts gets resolved colours via `useChartColors()`, because SVG attributes can't use `var()`.
 - **App version** shown in Lainnya is `__APP_VERSION__`, injected from `package.json` by `vite.config.ts`.
 - **No dead UI:** the Lainnya menu and all buttons only point at screens that exist (PRD §9). Touch targets are ≥ 44 px.
+
+## Deliberate deviations from the PRD
+
+These were requested by the user after the PRD was written. Don't "fix" them back.
+
+- **Onboarding wallet step is mandatory.** The PRD says it can be skipped, but the "Lewati" button was removed. Only the reminder step can be skipped.
+- **Wallet names in onboarding** come from the dropdowns in `features/wallets/walletTypes.ts` (`EWALLET_NAMES`, `BANK_NAMES`). Choosing "Lainnya (tulis sendiri)" requires a typed name.
+- **Picking "Lainnya" in the transaction form requires naming a new category**, typed inline in the sheet (`findOrCreateCategory` in `db/categories.ts`; a matching name is reused, and the new category is rolled back if the save is rejected). Refunds and edits that leave an existing "Lainnya" untouched are exempt. "Lainnya" itself stays protected (FR-2.6) and is still used by old transactions.
+- **Reminder time** uses the custom `TimeWheel` (5-minute steps), not `<input type="time">`, which overflowed on iOS.
 
 ## Data rules that are easy to get wrong (PRD §6)
 
