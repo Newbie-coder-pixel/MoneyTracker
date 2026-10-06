@@ -13,7 +13,7 @@ export function AmountKeypad({ value, onChange }: { value: number; onChange: (ne
           type="button"
           onClick={() => onChange(applyKeypad(value, key))}
           aria-label={key === 'back' ? 'Hapus angka' : key}
-          className={`grid h-12 place-items-center rounded-xl border border-border bg-surface font-semibold active:bg-border ${key === '000' ? 'text-base' : 'text-xl'}`}
+          className={`grid h-12 place-items-center rounded-xl border border-border bg-surface-muted font-semibold active:bg-border ${key === '000' ? 'text-base' : 'text-xl'}`}
         >
           {key === 'back' ? <Delete className="size-6" strokeWidth={1.75} aria-hidden="true" /> : key}
         </button>

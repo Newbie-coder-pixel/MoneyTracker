@@ -29,10 +29,13 @@ export function TransactionSheet() {
     active.find((w) => w.id === sheet.prefillFrom)?.id ?? active.find((w) => w.id === settings?.lastWalletId)?.id ?? active[0]?.id ?? ''
   const ready = wallets && settings && (!sheet.editId || edit)
 
+  // The form has its own header (type dropdown, back, close).
+  const showsForm = !!ready && !(sheet.editId && (!edit?.tx || edit.tx.type === 'adjustment'))
+
   const title = sheet.editId ? 'Ubah Transaksi' : 'Tambah Transaksi'
 
   return (
-    <Sheet open={sheet.isOpen} onClose={sheet.close} title={title}>
+    <Sheet open={sheet.isOpen} onClose={sheet.close} title={title} bareHeader={showsForm}>
       {/* Mounted only while open, so every opening starts with a fresh form. */}
       {sheet.isOpen && ready && (
         <>
