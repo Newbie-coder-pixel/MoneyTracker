@@ -210,13 +210,16 @@ describe('backup & restore (acceptance: backup → delete all → restore)', () 
     await expense(10_000, '2026-01-15')
     await setSetting('monthStartDay', 25)
     await setSetting('pushClientId', 'device-a')
+    await setSetting('biometricCredentialId', 'cred-a')
     const file = JSON.parse(JSON.stringify(await exportBackup()))
     expect(file.data.settings.some((r: { key: string }) => r.key === 'pushClientId')).toBe(false)
+    expect(file.data.settings.some((r: { key: string }) => r.key === 'biometricCredentialId')).toBe(false)
 
     const before = computeBalances(await db.wallets.toArray(), await db.transactions.toArray())
     await deleteAllData()
     expect(await db.transactions.count()).toBe(0)
     expect((await db.settings.get('pushClientId'))?.value).toBe('device-a') // this device stays registered
+    expect(await db.settings.get('biometricCredentialId')).toBeUndefined() // the PIN is gone, so biometric unlock is too
 
     await restoreBackup(file, 'replace')
     expect(await db.transactions.count()).toBe(2)

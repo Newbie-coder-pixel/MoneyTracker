@@ -63,7 +63,8 @@ export async function deleteAllData(): Promise<void> {
   await db.transaction('rw', db.tables, async () => {
     const keep = await deviceSettings()
     for (const table of db.tables) await table.clear()
-    await db.settings.bulkPut(keep.filter((r) => r.key !== 'installHintDismissed'))
+    // The PIN is wiped, so biometric unlock goes with it.
+    await db.settings.bulkPut(keep.filter((r) => r.key !== 'installHintDismissed' && r.key !== 'biometricCredentialId'))
   })
   await ensureSeeded()
 }

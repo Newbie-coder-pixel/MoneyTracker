@@ -24,7 +24,7 @@ export interface BackupFile {
 }
 
 /** Device-specific settings that must not travel to another device via backup. */
-export const DEVICE_ONLY_SETTINGS = new Set(['pushEnabled', 'pushClientId', 'pushEndpoint', 'backupSnoozedUntil', 'installHintDismissed'])
+export const DEVICE_ONLY_SETTINGS = new Set(['pushEnabled', 'pushClientId', 'pushEndpoint', 'backupSnoozedUntil', 'installHintDismissed', 'biometricCredentialId'])
 
 export function backupFileName(date = new Date()): string {
   return `money-tracker-backup-${toDateKey(date)}.json`

@@ -154,6 +154,8 @@ export interface Settings {
   dailyReminderTime: TimeKey
   pinHash?: string
   pinSalt?: string
+  /** WebAuthn credential id (base64url) for Face ID / fingerprint unlock; only used while a PIN is set. */
+  biometricCredentialId?: string
   lastBackupAt?: number
   /** Backup banner hidden until this epoch ms ("Nanti saja"). */
   backupSnoozedUntil?: number

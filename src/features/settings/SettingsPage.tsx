@@ -1,5 +1,5 @@
-import { Bell, ChevronRight, KeyRound, Monitor, Moon, Shapes, Sun, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Bell, ChevronRight, FingerprintPattern, KeyRound, Monitor, Moon, Shapes, Sun, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AppHeader } from '../../components/AppHeader'
 import { inputClass } from '../../components/Pickers'
@@ -15,6 +15,7 @@ import { hashPin, newSalt, PIN_MIN, verifyPin } from '../../lib/pin'
 import type { ThemePreference } from '../../lib/theme'
 import { syncPushOnOpen } from '../../pwa/push'
 import { refreshReminders } from '../reminders/refresh'
+import { isBiometricAvailable, registerBiometric } from '../security/biometric'
 import { unlock } from '../security/lockState'
 import { PinPad } from '../security/PinPad'
 
@@ -31,6 +32,11 @@ export function SettingsPage() {
   const [pinFlow, setPinFlow] = useState<'set' | 'change' | 'remove' | null>(null)
   const [confirmText, setConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [biometricAvailable, setBiometricAvailable] = useState(false)
+
+  useEffect(() => {
+    void isBiometricAvailable().then(setBiometricAvailable)
+  }, [])
 
   if (!settings) return <AppHeader title="Pengaturan" back />
 
@@ -41,6 +47,17 @@ export function SettingsPage() {
     void syncPushOnOpen()
     showToast('Semua data dihapus')
     navigate('/', { replace: true })
+  }
+
+  const toggleBiometric = async (enable: boolean) => {
+    if (!enable) {
+      await setSetting('biometricCredentialId', undefined)
+      return showToast('Face ID / sidik jari dimatikan')
+    }
+    const credentialId = await registerBiometric()
+    if (!credentialId) return showToast('Face ID / sidik jari tidak jadi diaktifkan')
+    await setSetting('biometricCredentialId', credentialId)
+    showToast('Face ID / sidik jari aktif')
   }
 
   return (
@@ -118,6 +135,24 @@ export function SettingsPage() {
                 <span className="flex-1 font-medium">Matikan kunci PIN</span>
                 <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
               </button>
+              <label className="flex min-h-16 items-center gap-3 px-4 py-3">
+                <FingerprintPattern className="size-5" aria-hidden="true" />
+                <span className="flex-1">
+                  <span className="block font-medium">Buka dengan Face ID / sidik jari</span>
+                  <span className="block text-xs text-text-muted">
+                    {biometricAvailable || settings.biometricCredentialId
+                      ? 'Memakai kunci layar perangkat ini. PIN tetap bisa dipakai.'
+                      : 'Tidak tersedia di perangkat atau browser ini.'}
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={!!settings.biometricCredentialId}
+                  disabled={!biometricAvailable && !settings.biometricCredentialId}
+                  onChange={(e) => void toggleBiometric(e.target.checked)}
+                  className="size-5 accent-primary"
+                />
+              </label>
             </>
           ) : (
             <button type="button" onClick={() => setPinFlow('set')} className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left">
@@ -216,6 +251,7 @@ function PinFlow({ flow, settings, onDone }: { flow: 'set' | 'change' | 'remove'
       if (flow === 'remove') {
         await setSetting('pinHash', undefined)
         await setSetting('pinSalt', undefined)
+        await setSetting('biometricCredentialId', undefined)
         showToast('Kunci PIN dimatikan')
         return onDone()
       }
@@ -231,6 +267,8 @@ function PinFlow({ flow, settings, onDone }: { flow: 'set' | 'change' | 'remove'
       setStage('new')
       return setError('PIN tidak sama, ulangi')
     }
+    // A leftover credential (e.g. kept through a restore) must not switch itself on with a new PIN.
+    if (flow === 'set') await setSetting('biometricCredentialId', undefined)
     const salt = newSalt()
     await setSetting('pinSalt', salt)
     await setSetting('pinHash', await hashPin(pin, salt))
