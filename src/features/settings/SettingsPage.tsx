@@ -60,6 +60,15 @@ export function SettingsPage() {
     showToast('Face ID / sidik jari aktif')
   }
 
+  // Biometrics sit on top of the PIN, so the switch is shown but locked until a PIN exists.
+  const biometricOn = !!settings.pinHash && !!settings.biometricCredentialId
+  const biometricUsable = !!settings.pinHash && (biometricAvailable || biometricOn)
+  const biometricHint = !settings.pinHash
+    ? 'Atur PIN dulu. PIN tetap dipakai sebagai cadangan.'
+    : biometricUsable
+      ? 'Memakai kunci layar perangkat ini. PIN tetap bisa dipakai.'
+      : 'Tidak tersedia di perangkat atau browser ini.'
+
   return (
     <>
       <AppHeader title="Pengaturan" back />
@@ -135,24 +144,6 @@ export function SettingsPage() {
                 <span className="flex-1 font-medium">Matikan kunci PIN</span>
                 <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
               </button>
-              <label className="flex min-h-16 items-center gap-3 px-4 py-3">
-                <FingerprintPattern className="size-5" aria-hidden="true" />
-                <span className="flex-1">
-                  <span className="block font-medium">Buka dengan Face ID / sidik jari</span>
-                  <span className="block text-xs text-text-muted">
-                    {biometricAvailable || settings.biometricCredentialId
-                      ? 'Memakai kunci layar perangkat ini. PIN tetap bisa dipakai.'
-                      : 'Tidak tersedia di perangkat atau browser ini.'}
-                  </span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={!!settings.biometricCredentialId}
-                  disabled={!biometricAvailable && !settings.biometricCredentialId}
-                  onChange={(e) => void toggleBiometric(e.target.checked)}
-                  className="size-5 accent-primary"
-                />
-              </label>
             </>
           ) : (
             <button type="button" onClick={() => setPinFlow('set')} className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left">
@@ -164,6 +155,20 @@ export function SettingsPage() {
               <ChevronRight className="size-4 text-text-muted" aria-hidden="true" />
             </button>
           )}
+          <label className="flex min-h-16 items-center gap-3 px-4 py-3">
+            <FingerprintPattern className={`size-5 ${biometricUsable ? '' : 'text-text-muted'}`} aria-hidden="true" />
+            <span className="flex-1">
+              <span className="block font-medium">Buka dengan Face ID / sidik jari</span>
+              <span className="block text-xs text-text-muted">{biometricHint}</span>
+            </span>
+            <input
+              type="checkbox"
+              checked={biometricOn}
+              disabled={!biometricUsable}
+              onChange={(e) => void toggleBiometric(e.target.checked)}
+              className="size-5 accent-primary"
+            />
+          </label>
         </Section>
 
         <Section title="Pengingat">
