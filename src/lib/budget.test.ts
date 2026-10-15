@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Budget } from '../db/types'
-import { budgetLevel, carryOverBudgets, evaluateThresholds, perDayAllowance } from './budget'
+import { budgetLevel, budgetPercent, carryOverBudgets, evaluateThresholds, perDayAllowance } from './budget'
 
 describe('budgetLevel', () => {
   it('uses the 80% / 100% bands', () => {
@@ -53,5 +53,19 @@ describe('carryOverBudgets', () => {
     expect(next).toEqual([
       { id: 'new', categoryId: 'food', period: '2026-10', amount: 1, autoRepeat: true, alerted80: false, alerted100: false },
     ])
+  })
+})
+
+describe('budgetPercent', () => {
+  it('rounds down so 100% means the budget is used up', () => {
+    expect(budgetPercent(5_562_953, 5_570_000)).toBe(99)
+    expect(budgetPercent(5_570_000, 5_570_000)).toBe(100)
+    expect(budgetPercent(6_000_000, 5_000_000)).toBe(120)
+    expect(budgetPercent(799, 1_000)).toBe(79)
+  })
+
+  it('handles a zero budget', () => {
+    expect(budgetPercent(0, 0)).toBe(0)
+    expect(budgetPercent(1, 0)).toBe(100)
   })
 })

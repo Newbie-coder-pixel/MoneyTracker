@@ -21,19 +21,31 @@ export async function saveCategory(draft: CategoryDraft, existingId?: string): P
   return id
 }
 
+/** Active category with this name (case- and space-insensitive), as `findOrCreateCategory` reuses it. */
+export function findCategoryByName<C extends Pick<Category, 'name' | 'archived'>>(categories: C[], name: string): C | undefined {
+  const wanted = name.trim().toLowerCase()
+  if (!wanted) return undefined
+  return categories.find((c) => !c.archived && c.name.trim().toLowerCase() === wanted)
+}
+
 /**
  * Category typed in the transaction form after picking "Lainnya": reuses an active
- * category of the same kind with that name (case-insensitive), otherwise creates one.
+ * category of the same kind with that name (case-insensitive, keeping its own icon and
+ * colour), otherwise creates one with the picked `look`.
  */
-export async function findOrCreateCategory(name: string, kind: CategoryKind): Promise<{ id: string; created: boolean }> {
-  const wanted = name.trim().toLowerCase()
-  if (!wanted) throw new Error('Nama kategori baru wajib diisi')
+export async function findOrCreateCategory(
+  name: string,
+  kind: CategoryKind,
+  look?: Pick<Category, 'icon' | 'color'>,
+): Promise<{ id: string; created: boolean }> {
+  if (!name.trim()) throw new Error('Nama kategori baru wajib diisi')
   const ofKind = await db.categories.where('kind').equals(kind).toArray()
-  const match = ofKind.find((c) => !c.archived && c.name.trim().toLowerCase() === wanted)
+  const match = findCategoryByName(ofKind, name)
   if (match && isOtherCategory(match)) throw new Error('Tulis nama kategori selain "Lainnya"')
   if (match) return { id: match.id, created: false }
-  const color = PICKER_COLORS[ofKind.length % PICKER_COLORS.length]
-  return { id: await saveCategory({ name, kind, icon: 'sparkles', color }), created: true }
+  const icon = look?.icon ?? 'sparkles'
+  const color = look?.color ?? PICKER_COLORS[ofKind.length % PICKER_COLORS.length]
+  return { id: await saveCategory({ name, kind, icon, color }), created: true }
 }
 
 async function isUsed(id: string): Promise<boolean> {

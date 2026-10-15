@@ -11,9 +11,13 @@ export function budgetLevel(spent: number, amount: number): BudgetLevel {
   return 'safe'
 }
 
+/**
+ * Rounded down, so "100%" only shows once the budget is really used up (matching
+ * `budgetLevel`): Rp 5.562.953 of Rp 5.570.000 is 99%, not 100%.
+ */
 export function budgetPercent(spent: number, amount: number): number {
   if (amount <= 0) return spent > 0 ? 100 : 0
-  return Math.round((spent / amount) * 100)
+  return Math.floor((spent / amount) * 100)
 }
 
 /** max(0, budget − spent) ÷ days left including today (FR-6.5, PRD §6.2). */

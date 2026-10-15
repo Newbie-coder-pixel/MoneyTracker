@@ -73,10 +73,12 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (c: 
   )
 }
 
-export function IconPicker({ value, color, onChange }: { value: string; color: string; onChange: (icon: string) => void }) {
+export function IconPicker({ value, color, onChange, hide }: { value: string; color: string; onChange: (icon: string) => void; hide?: string[] }) {
   return (
     <div role="radiogroup" aria-label="Ikon" className="mt-2 grid grid-cols-7 gap-2">
-      {Object.entries(ICONS).map(([name, Icon]) => (
+      {Object.entries(ICONS)
+        .filter(([name]) => !hide?.includes(name))
+        .map(([name, Icon]) => (
         <button
           key={name}
           type="button"

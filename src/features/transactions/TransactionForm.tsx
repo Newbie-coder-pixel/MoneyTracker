@@ -2,9 +2,10 @@ import { ArrowDownUp, ArrowRight, Check, ChevronDown, ChevronLeft, CopyPlus, Rep
 import { createElement, useMemo, useState, type ReactNode } from 'react'
 import { AmountKeypad } from '../../components/AmountKeypad'
 import { iconFor } from '../../components/icons'
-import { inputClass } from '../../components/Pickers'
+import { IconBadge } from '../../components/IconBadge'
+import { ColorPicker, IconPicker, inputClass } from '../../components/Pickers'
 import { showToast } from '../../components/toast'
-import { deleteCategory, findOrCreateCategory, isOtherCategory } from '../../db/categories'
+import { deleteCategory, findCategoryByName, findOrCreateCategory, isOtherCategory } from '../../db/categories'
 import { useBalances, useCategoriesByUsage } from '../../db/hooks'
 import {
   deleteTransaction,
@@ -17,9 +18,11 @@ import {
 import type { Transaction, Wallet } from '../../db/types'
 import { formatDayShort, formatRelativeDay, toTimeKey, todayKey } from '../../lib/dates'
 import { addCapped, formatNumber, formatRupiah, parseAmountInput } from '../../lib/money'
+import { PICKER_COLORS } from '../../lib/palette'
 import { NOTE_MAX } from '../../lib/validation'
 import { announceBudgetAlerts } from '../budgets/announce'
 import type { AddKind } from './addSheetParam'
+import { firstStep, needsNewCategory as needsNewCategoryFor, nextStep, stepAfterCategory, stepsFor, type Step } from './formSteps'
 
 type Props = {
   initialKind: AddKind
@@ -33,10 +36,8 @@ type Props = {
   onDone: () => void
 }
 
-type Step = 'category' | 'amount' | 'details'
-
-/** A transfer has no category, so it starts at the amount. */
-const stepsFor = (kind: AddKind): Step[] => (kind === 'transfer' ? ['amount', 'details'] : ['category', 'amount', 'details'])
+/** Starting icon for a category named after picking "Lainnya"; the user can change it. */
+const NEW_CATEGORY_ICON = 'sparkles'
 
 const QUICK_ADD = [10_000, 50_000, 100_000]
 const QUICK_ADD_TRANSFER = [100_000, 250_000, 500_000, 1_000_000]
@@ -70,12 +71,13 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const [adminFee, setAdminFee] = useState(existingFee?.amount ?? 0)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  // A new entry walks through the steps; an edit opens on the summary.
-  const [step, setStep] = useState<Step>(existing ? 'details' : stepsFor(initialKind)[0])
+  const [step, setStep] = useState<Step>(firstStep(initialKind, !!existing))
   const [reviewed, setReviewed] = useState(!!existing)
   const [kindOpen, setKindOpen] = useState(false)
   const [openList, setOpenList] = useState<'wallet' | 'toWallet' | null>(null)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryIcon, setNewCategoryIcon] = useState(NEW_CATEGORY_ICON)
+  const [newCategoryColor, setNewCategoryColor] = useState<string | null>(null)
 
   // Refunds pick the original expense category (FR-1.9).
   const categoryKind = kind === 'expense' || isRefund ? 'expense' : 'income'
@@ -85,23 +87,30 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const type: TransactionDraft['type'] = kind === 'income' && isRefund ? 'refund' : kind
   const isTransfer = kind === 'transfer'
   const selectable = wallets.filter((w) => !w.archived || w.id === walletId || w.id === toWalletId)
-  // Picking "Lainnya" requires naming a new category. Refunds are exempt (they point at an
-  // existing expense category), and so is an edit that leaves an old "Lainnya" untouched.
   const selectedCategory = categories?.find((c) => c.id === categoryId)
-  const needsNewCategory = !isRefund && !!selectedCategory && isOtherCategory(selectedCategory) && existing?.categoryId !== categoryId
+  const needsNewCategory =
+    !!selectedCategory &&
+    needsNewCategoryFor({ isOther: isOtherCategory(selectedCategory), isRefund, existingCategoryId: existing?.categoryId, categoryId: selectedCategory.id })
+  // Until the user picks a colour, rotate through the palette so new categories differ.
+  const newColor = newCategoryColor ?? PICKER_COLORS[(categories?.length ?? 0) % PICKER_COLORS.length]
+  // A typed name that already exists reuses that category, look included.
+  const existingNamed = needsNewCategory ? findCategoryByName(categories ?? [], newCategoryName) : undefined
+  const newLook = existingNamed && !isOtherCategory(existingNamed) ? existingNamed : { icon: newCategoryIcon, color: newColor }
 
   const switchKind = (next: AddKind) => {
     setKind(next)
     setIsRefund(false)
     setCategoryId(undefined)
     setNewCategoryName('')
+    setNewCategoryIcon(NEW_CATEGORY_ICON)
+    setNewCategoryColor(null)
     setError(null)
     setKindOpen(false)
     setOpenList(null)
     // A new entry restarts at the first step of that kind; an edit stays on its summary.
     if (!existing) {
       setReviewed(false)
-      setStep(stepsFor(next)[0])
+      setStep(firstStep(next, false))
     }
   }
 
@@ -131,7 +140,7 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
     try {
       if (needsNewCategory) {
         try {
-          const result = await findOrCreateCategory(newCategoryName, categoryKind)
+          const result = await findOrCreateCategory(newCategoryName, categoryKind, { icon: newCategoryIcon, color: newColor })
           finalCategoryId = result.id
           if (result.created) createdCategoryId = result.id
         } catch (e) {
@@ -175,8 +184,7 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const toWallet = wallets.find((w) => w.id === toWalletId)
   const steps = stepsFor(kind)
   const stepIndex = steps.indexOf(step)
-  // Once the summary has been seen, a correction goes straight back to it.
-  const advance = () => setStep(reviewed ? 'details' : (steps[stepIndex + 1] ?? 'details'))
+  const advance = () => setStep(nextStep(kind, step, reviewed))
   const openDetails = () => {
     setReviewed(true)
     setStep('details')
@@ -184,10 +192,7 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
   const pickCategory = (id: string) => {
     setCategoryId(id)
     const picked = categories?.find((c) => c.id === id)
-    // "Lainnya" stays on this step until the new category has a name.
-    if (picked && !isRefund && isOtherCategory(picked) && existing?.categoryId !== id) return
-    if (reviewed) setStep('details')
-    else setStep('amount')
+    setStep(stepAfterCategory({ isOther: !!picked && isOtherCategory(picked), isRefund, existingCategoryId: existing?.categoryId, categoryId: id }, reviewed))
   }
   const kindLabel = TABS.find((t) => t.kind === kind)?.label ?? ''
 
@@ -282,17 +287,41 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
                 <>
                   <label className="block">
                     <span className="label-caps">Nama kategori baru</span>
-                    <input
-                      autoFocus
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      maxLength={30}
-                      placeholder="Misal: Kopi"
-                      className={inputClass}
-                    />
-                    <span className="mt-1 block text-xs text-text-muted">Wajib diisi. Kategori ini tersimpan dan bisa dipilih lagi nanti.</span>
+                    <span className="mt-1.5 flex items-center gap-3">
+                      <IconBadge icon={newLook.icon} color={newLook.color} size="lg" />
+                      <input
+                        autoFocus
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        maxLength={30}
+                        placeholder="Misal: Kopi"
+                        className={inputClass.replace('mt-1.5 ', '')}
+                      />
+                    </span>
+                    {existingNamed ? (
+                      <span className="mt-1 block text-xs text-text-muted" role="status">
+                        {isOtherCategory(existingNamed)
+                          ? 'Tulis nama kategori selain "Lainnya".'
+                          : `Kategori "${existingNamed.name}" sudah ada, jadi kategori itu yang dipakai (ikon dan warnanya tetap).`}
+                      </span>
+                    ) : (
+                      <span className="mt-1 block text-xs text-text-muted">Wajib diisi. Kategori ini tersimpan dan bisa dipilih lagi nanti.</span>
+                    )}
                   </label>
-                  <button type="button" onClick={advance} disabled={!newCategoryName.trim()} className={PRIMARY}>
+                  {!existingNamed && (
+                    <>
+                      <div>
+                        <span className="label-caps">Ikon</span>
+                        {/* The ellipsis is the "Lainnya" placeholder, so a named category can't take it. */}
+                        <IconPicker value={newCategoryIcon} color={newColor} onChange={setNewCategoryIcon} hide={['ellipsis']} />
+                      </div>
+                      <div>
+                        <span className="label-caps">Warna</span>
+                        <ColorPicker value={newColor} onChange={setNewCategoryColor} />
+                      </div>
+                    </>
+                  )}
+                  <button type="button" onClick={advance} disabled={!newCategoryName.trim() || (!!existingNamed && isOtherCategory(existingNamed))} className={PRIMARY}>
                     Lanjut <ArrowRight className="size-5" aria-hidden="true" />
                   </button>
                 </>
@@ -399,10 +428,10 @@ export function TransactionForm({ initialKind, existing, existingFee, wallets, d
                     <SummaryRow label="Kategori" onClick={() => setStep('category')}>
                       {selectedCategory ? (
                         <span className="flex items-center gap-2 text-[15px] font-semibold">
-                          <span style={{ color: selectedCategory.color }} aria-hidden="true">
-                            {createElement(iconFor(selectedCategory.icon), { className: 'size-4', strokeWidth: 1.75 })}
+                          <span style={{ color: needsNewCategory ? newLook.color : selectedCategory.color }} aria-hidden="true">
+                            {createElement(iconFor(needsNewCategory ? newLook.icon : selectedCategory.icon), { className: 'size-4', strokeWidth: 1.75 })}
                           </span>
-                          <span className="truncate">{needsNewCategory && newCategoryName.trim() ? newCategoryName.trim() : selectedCategory.name}</span>
+                          <span className="truncate">{needsNewCategory && newCategoryName.trim() ? (existingNamed?.name ?? newCategoryName.trim()) : selectedCategory.name}</span>
                         </span>
                       ) : (
                         <span className="text-[15px] text-text-muted">Pilih kategori</span>

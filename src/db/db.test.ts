@@ -185,10 +185,12 @@ describe('category rules (FR-2.5, FR-2.6)', () => {
 
   it('creates a category typed after picking "Lainnya", or reuses one with the same name', async () => {
     const { findOrCreateCategory } = await import('./categories')
-    const first = await findOrCreateCategory('  Kopi ', 'expense')
+    const first = await findOrCreateCategory('  Kopi ', 'expense', { icon: 'coffee', color: '#ea580c' })
     expect(first.created).toBe(true)
-    expect(await db.categories.get(first.id)).toMatchObject({ name: 'Kopi', kind: 'expense', archived: false })
-    expect(await findOrCreateCategory('kopi', 'expense')).toEqual({ id: first.id, created: false })
+    expect(await db.categories.get(first.id)).toMatchObject({ name: 'Kopi', kind: 'expense', archived: false, icon: 'coffee', color: '#ea580c' })
+    // A reused category keeps its own look.
+    expect(await findOrCreateCategory('kopi', 'expense', { icon: 'gift', color: '#2563eb' })).toEqual({ id: first.id, created: false })
+    expect(await db.categories.get(first.id)).toMatchObject({ icon: 'coffee', color: '#ea580c' })
     expect((await findOrCreateCategory('Kopi', 'income')).created).toBe(true)
     await expect(findOrCreateCategory(' ', 'expense')).rejects.toThrow('wajib')
     await expect(findOrCreateCategory('lainnya', 'expense')).rejects.toThrow('Lainnya')

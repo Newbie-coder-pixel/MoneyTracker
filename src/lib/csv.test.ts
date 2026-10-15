@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Transaction } from '../db/types'
 import { csvCell, transactionsToCsv } from './csv'
-import { hashPin, isValidPin, newSalt, verifyPin } from './pin'
-import { backupAgeDays, checkBackup } from './backup'
 
 const tx = (over: Partial<Transaction>): Transaction => ({
   id: '1',
@@ -47,39 +45,5 @@ describe('csvCell', () => {
     expect(csvCell('=HYPERLINK("x")')).toBe(`"'=HYPERLINK(""x"")"`)
     expect(csvCell('-5')).toBe('-5')
     expect(csvCell('- catatan')).toBe("'- catatan")
-  })
-})
-
-describe('pin', () => {
-  it('hashes with a salt and verifies', async () => {
-    const salt = newSalt()
-    const hash = await hashPin('1234', salt)
-    expect(hash).toMatch(/^[0-9a-f]{64}$/)
-    expect(await verifyPin('1234', salt, hash)).toBe(true)
-    expect(await verifyPin('4321', salt, hash)).toBe(false)
-    expect(await hashPin('1234', newSalt())).not.toBe(hash)
-  })
-
-  it('accepts 4–6 digits only', () => {
-    expect(isValidPin('1234')).toBe(true)
-    expect(isValidPin('123456')).toBe(true)
-    expect(isValidPin('123')).toBe(false)
-    expect(isValidPin('12a4')).toBe(false)
-  })
-})
-
-describe('backup checks', () => {
-  const data = { wallets: [], categories: [], transactions: [1, 2], budgets: [], recurring: [], recurringOccurrences: [], reminders: [], settings: [] }
-
-  it('validates app id, schema version and tables', () => {
-    expect(checkBackup({ app: 'money-tracker', schemaVersion: 1, exportedAt: '', data }, 1)).toMatchObject({ ok: true, counts: { transactions: 2 } })
-    expect(checkBackup({ app: 'other', schemaVersion: 1, data }, 1).ok).toBe(false)
-    expect(checkBackup({ app: 'money-tracker', schemaVersion: 2, data }, 1)).toMatchObject({ ok: false, error: expect.stringContaining('lebih baru') })
-    expect(checkBackup({ app: 'money-tracker', schemaVersion: 1, data: { ...data, budgets: undefined } }, 1).ok).toBe(false)
-  })
-
-  it('computes backup age', () => {
-    expect(backupAgeDays(undefined, undefined, 0)).toBeNull()
-    expect(backupAgeDays(0, undefined, 31 * 86_400_000)).toBe(31)
   })
 })

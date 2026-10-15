@@ -1,4 +1,4 @@
-import { Bell, ChevronRight, FingerprintPattern, KeyRound, Monitor, Moon, Shapes, Sun, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
+import { Bell, ChevronRight, DatabaseBackup, FingerprintPattern, HardDrive, KeyRound, Monitor, Moon, Shapes, Sun, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AppHeader } from '../../components/AppHeader'
@@ -12,8 +12,10 @@ import type { Settings } from '../../db/types'
 import { useTheme } from '../../hooks/useTheme'
 import { todayKey } from '../../lib/dates'
 import { hashPin, newSalt, PIN_MIN, verifyPin } from '../../lib/pin'
+import { storageStatus, type StorageFacts } from '../../lib/storage'
 import type { ThemePreference } from '../../lib/theme'
 import { syncPushOnOpen } from '../../pwa/push'
+import { readStorageFacts, requestPersistentStorage } from '../../pwa/storage'
 import { refreshReminders } from '../reminders/refresh'
 import { isBiometricAvailable, registerBiometric } from '../security/biometric'
 import { unlock } from '../security/lockState'
@@ -33,9 +35,11 @@ export function SettingsPage() {
   const [confirmText, setConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [biometricAvailable, setBiometricAvailable] = useState(false)
+  const [storage, setStorage] = useState<StorageFacts | null>(null)
 
   useEffect(() => {
     void isBiometricAvailable().then(setBiometricAvailable)
+    void readStorageFacts().then(setStorage)
   }, [])
 
   if (!settings) return <AppHeader title="Pengaturan" back />
@@ -59,6 +63,13 @@ export function SettingsPage() {
     await setSetting('biometricCredentialId', credentialId)
     showToast('Face ID / sidik jari aktif')
   }
+
+  const protectStorage = async () => {
+    const granted = await requestPersistentStorage()
+    setStorage(await readStorageFacts())
+    showToast(granted ? 'Data terlindungi' : 'Browser menolak. Tambahkan ke Layar Utama lalu coba lagi.')
+  }
+  const storageInfo = storage && storageStatus(storage)
 
   // Biometrics sit on top of the PIN, so the switch is shown but locked until a PIN exists.
   const biometricOn = !!settings.pinHash && !!settings.biometricCredentialId
@@ -169,6 +180,26 @@ export function SettingsPage() {
               className="size-5 accent-primary"
             />
           </label>
+        </Section>
+
+        <Section title="Data">
+          {storageInfo && (
+            <div className="flex min-h-16 items-start gap-3 px-4 py-3">
+              <HardDrive className={`mt-0.5 size-5 shrink-0 ${storageInfo.safe ? 'text-accent' : 'text-expense'}`} aria-hidden="true" />
+              <span className="flex-1">
+                <span className="block font-medium">
+                  Penyimpanan: <span className={storageInfo.safe ? 'text-accent' : 'text-expense'}>{storageInfo.label}</span>
+                </span>
+                <span className="block text-xs text-text-muted">{storageInfo.hint}</span>
+                {storageInfo.canRequest && (
+                  <button type="button" onClick={() => void protectStorage()} className="mt-2 min-h-11 rounded-full border border-border px-4 text-sm font-semibold">
+                    Lindungi data
+                  </button>
+                )}
+              </span>
+            </div>
+          )}
+          <NavRow to="/lainnya/backup" icon={DatabaseBackup} label="Backup & restore" />
         </Section>
 
         <Section title="Pengingat">
